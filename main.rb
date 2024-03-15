@@ -1,4 +1,6 @@
 require 'socket'
+require 'uri'
+require './html_templates/home.rb'
 
 server = TCPServer.new(8080)
 
@@ -11,7 +13,21 @@ loop do
     case [method_token, target]
     when ['GET','/home']
         status_code = '200 OK'
-        response_message = 'Hello, Home.'
+        response_message = home('HOME.', 'Falsche PASSWORD.')
+    when ['POST', '/login']
+        status_code = '200 OK'
+        puts target
+        headers = {}
+        while true 
+            line = client.readline 
+            break if line == "\r\n"
+            header_name, value = line.split(": ")
+            headers[header_name] = value
+        end
+        body = client.read(headers['Content-Length'].to_i)
+        puts body
+        new_daily_data = URI.decode_www_form(body).to_h
+        puts new_daily_data
     end
     http_response = <<~MSG
     HTTP/1.1 #{status_code}
