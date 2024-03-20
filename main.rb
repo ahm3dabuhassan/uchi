@@ -20,7 +20,7 @@ loop do
         status_code = '200 OK'
         response_message = home('HOME.', 'Falsches PASSWORD.')
         response_message << "<script>"
-        f = File.open("./js/test.js")
+        f = File.open("./js/home.js")
             content = f.read
             response_message << content
         f.close
