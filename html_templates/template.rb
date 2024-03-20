@@ -38,16 +38,39 @@ def home(titel,error=nil) #Style?
             </style>
         </head>
         <body>
-        <h1>Wilkommen bei UCHI.</h1>
+        <h1>Willkommen bei .../.</h1>
         <div id="login-main">
-        <form action="/login" method="POST">
-            <label for="username">Username:</label><input type="text" id="username" name="username">
-            <label for="password">Password:</label><input type="password" id="password" name="password">
+        <form action="/login" method="POST"> 
+            <label for="username">Username:</label><input type="text" id="username" class="home-form-input" name="username">
+            <label for="password">Password:</label><input type="password" id="password" class="home-form-input" name="password">
             <input type="submit" value="Einloggen">
             <input type="reset" value="Reset">
         </form>
         <p id="login-message">#{error}</p>
         </div>
         </body>
+    STR
+end
+
+def headInside(titel,nickname) 
+    <<~STR
+        <head>
+            <title>#{titel}</title>
+            <style>
+            body {
+                font-family: monospace;
+                color:blue;
+            }
+            </style>
+        </head>
+    <body>  
+    <header>
+        <li>
+            <ul><a href="/inside">Home</a></ul>
+            <ul><a href="/out">Logout</a></ul>
+        </li>
+    </header>
+    <body>
+    <h1>Hello, #{nickname}.</h1>
     STR
 end

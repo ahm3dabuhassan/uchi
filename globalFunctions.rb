@@ -1,5 +1,6 @@
 require 'mysql'
 require 'BCrypt'
+require 'socket'
 
 class VerifyUser 
     DB_Data = {
@@ -11,7 +12,6 @@ class VerifyUser
     def initialize(username, password)
         @username, @password = username, password
         @response = nil
-        self.connect()
     end
 
     def connect()
@@ -35,6 +35,29 @@ class VerifyUser
         end
     end
     attr :response
+end
+
+class CompareString 
+    @@counter = 0
+    @@result = 0
+    def initialize(s1,s2)
+        @string01, @string02 = s1, s2
+    end
+    def go() 
+        while @@counter < @string02.length do
+            puts "\e[32mCompareString:. #{@string01[@@counter]}, #{@string02[@@counter]}\e[0m"
+            if @string01[@@counter] == @string02[@@counter]
+                @@result += 1
+            end
+            @@counter += 1
+        end
+        puts "RESULT:#{@@result}, #{@string02.length}"
+        if @@result == @string02.length
+            return true
+        else 
+            return false
+        end
+    end
 end
 
 
