@@ -10,7 +10,7 @@ def home(titel,error=nil) #Style?
                 #login-main {
                     width:42%;
                     border:1px solid black;
-                    padding: 1%;
+                    padding: 2%;
                     border-radius: 5px;
                 }
                 #login-message {
@@ -29,8 +29,16 @@ def home(titel,error=nil) #Style?
                     display: inline-block;
                     margin-bottom: 4%;
                 }
-                #login-main > form > input[type="submit"] {
+                #login-main > form > input[type="submit"], input[type="reset"]{
+                    width:30%;
+                    padding:2%;
                     margin-top: 4%;
+                    border:0;
+                    border-radius:2.5px;
+                    background-color:blue;
+                    color:white;
+                    font-family:futura;
+                    letter-spacing:2px
                 }
                 #login-message {
                     float: right;
