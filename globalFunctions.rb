@@ -9,7 +9,7 @@ class VerifyUser
     @@v = {
         :connection => nil, :response => nil, :command => nil, :verify => nil
     }
-    def initialize(username, password)
+    def initialize(username, password) 
         @username, @password = username, password
         @response = nil
     end
@@ -20,6 +20,7 @@ class VerifyUser
         @@v[:command] = "SELECT * FROM #{DB_Data[:table_name]} WHERE username = '#{@username}'"
         @@v[:response] = @@v[:connection].query(@@v[:command])
         @response = @@v[:response].fetch_hash()
+        puts @response
         return @response
 
         rescue Mysql::Error => e 
@@ -27,37 +28,179 @@ class VerifyUser
             puts e.error
         end
     end
-    def verify()
-        if @@v[:verify] = BCrypt::Password.new(@response["Password"]) == @password
-            return true
-        else 
-            return false
+    def verify()    
+        begin   
+            if @@v[:verify] = BCrypt::Password.new(@response["Password"]) == @password
+                return true
+            else 
+                puts "FALSCHES PASSWORD"
+                return false
+            end
+        rescue 
+            puts "FALSCHER USERNAME"
         end
     end
     attr :response
 end
 
-class CompareString 
-    @@counter = 0
-    @@result = 0
-    def initialize(s1,s2)
-        @string01, @string02 = s1, s2
+class FindAllFolders
+    @@data = {
+     :allFiles => nil,
+     :allDir => {}
+    }
+    def initialize(patt)
+         @pattern = patt
+         @allDirectories = nil
+         self.findFolders()
+         self.addFolder()
     end
-    def go() 
-        while @@counter < @string02.length do
-            puts "\e[32mCompareString:. #{@string01[@@counter]}, #{@string02[@@counter]}\e[0m"
-            if @string01[@@counter] == @string02[@@counter]
-                @@result += 1
+    def findFolders() 
+        puts "find_folders: #{Dir.getwd}" 
+         Dir.chdir("#{self.pattern}")
+         @@data[:allFiles] = Dir.glob("*")
+         @@data[:allFiles].each { |f|       
+                 s = File.stat("#{self.pattern}/#{f}")
+                 if s.directory? 
+                     @@data[:allDir][f] = []
+                     @@data[:allDir][f] <<  "#{self.pattern}/#{f}"
+                 end 
+         }
+    end
+    def addFolder(index=nil) 
+        counter = 0
+        @@data[:allDir].each { |key,value|
+             if index != nil
+                 for i in @@data[:allDir][key][index]
+                     Dir.chdir("#{i}")
+                     @@data[:allFiles] = Dir.glob("*")
+                     @@data[:allFiles].each { |b|
+                         s = File.stat("#{Dir.getwd}/#{b}")
+                         if s.directory?
+                             @@data[:allDir][key] <<  "#{Dir.getwd}/#{b}"
+                         end
+                     }
+                     counter += 1
+                 end
+             else 
+                 for i in @@data[:allDir][key]
+                     Dir.chdir("#{i}")
+                     @@data[:allFiles] = Dir.glob("*")
+                     @@data[:allFiles].each { |b|
+                         s = File.stat("#{Dir.getwd}/#{b}")
+                         if s.directory?
+                             @@data[:allDir][key] <<  "#{Dir.getwd}/#{b}"
+                         end
+                     }
+                     counter += 1
+             end             
+             end    
+            if @@data[:allDir][key][counter] != nil
+                 self.addFolder(counter)
+            else
+                @allDirectories =  @@data[:allDir]
             end
-            @@counter += 1
-        end
-        puts "RESULT:#{@@result}, #{@string02.length}"
-        if @@result == @string02.length
-            return true
-        else 
-            return false
-        end
+         }
+         puts "\e[32m#{@@data[:allDir]}\n\e[0m"
+         Dir.chdir("#{@pattern}")
+         File.open("Folders.txt","w") {
+             |content| 
+             @@data[:allDir].each { |key,value|
+                 content.write("USER:#{key}:\n")
+                 for i in value
+                     stix = File.stat("#{i}")
+                     content.write("\tDIRECTORIES: #{i}, SIZE: #{stix.size} Byte, TIME: #{stix.atime.strftime("%m/%d/%Y at %I:%M %p")}\n")
+                 end
+             }
+         }
     end
-end
+  
+     attr :pattern, true
+     attr :allDirectories 
+ end
 
+ class Overview 
+    @@stats = nil
+    @@folder = nil
+    @@forPath = nil
+    @@wdP = nil
+    def initialize(data,username,index=0)
+        @data = data
+        @user = username
+        @index = index
+        @output = nil
+        self.init(@index)
+    end
+    def init(index) #path als Parameter, wenn am Ende ist, auslesen. 
+        @data.each { |k,v|    
+            if k == @user  
+                Dir.chdir("#{v[index]}")
+                @output = <<~STR
+                <div id="working-directory">
+                <p style="color:orange;"><span class="material-symbols-outlined">
+                folder_data
+                </span>Working Directory:<p id="working-directory-path">#{Dir.getwd}</p></p>
+                </div>
+                <div id="overview"> 
+                    <table>
+                        <thead>
+                            <td class="inside-thead">Name:</td>
+                            <td class="inside-thead">Path:</td>
+                            <td class="inside-thead">Size</td>
+                            <td class="inside-thead">Time:</td>
+                            <td class="inside-thead">Task:</td>
+                        </thead>
+            STR
+                @@forPath = Dir.getwd
+                @@folder = Dir.glob("*")
+                @@folder.each { |f| 
+                @@forPath = "#{@@forPath}"
+                @@stats = File.stat("#{f}")
+                if @@stats.file?
+                        @output << "<tr>"
+                        @output <<  <<~STR 
+                            <td><a class="overview-type-file" href="/open-file/#{v[index][/#{k}\/?[a-zA-Z\/\.]*$/]}/#{f}"><span class="material-symbols-outlined">
+                            description
+                            </span>#{f}</a></td>
+                            <td><p style="width:90%;">#{@@forPath}/<span style="color:#FF9933">#{f}</span></p></td>
+                            <td>#{@@stats.size} Bit</td>
+                            <td>#{@@stats.atime}</td>
+                            <td><div class="inside-action" id="file/#{@user}/#{v[index][/[a-zA-Z0-9\-\_]+$/]}/#{f}"><span class="material-symbols-outlined">
+                            rebase
+                            </span></div></td>
+                        STR
+                    else 
+                        @output << <<~STR
+                            <td><a class="overview-type-directory" href="/open-dir/#{f}"><span class="material-symbols-outlined">
+                            folder
+                            </span>#{f}</a></td>
+                            <td><p style="width:90%;">#{@@forPath}/<span style="color:#FF9933">#{f}</span></p></td>
+                            <td>#{@@stats.size / 1024} Bit</td>
+                            <td>#{@@stats.atime.strftime("%m/%d/%Y at %I:%M %p")}</td>
+                            <td><div class="inside-action" id="directory/#{@user}/#{v[index][/[a-zA-Z0-9\-\_]+$/]}/#{f}"><span class="material-symbols-outlined">
+                            rebase
+                            </span></div></td>
+                        STR
+                    end 
+                    @output << "</tr>"
+                }
+            @output << "</table></div>"
+        end
+        } 
+        @output << implementJS('inside.js')
+    end
+    attr :output; true
+    attr :data
+ end
 
+ def implementJS(file)
+    root_project = "/Users/ahmedabu-hassan/Desktop/uchi"
+    out = ""
+    Dir.chdir("#{root_project}")
+    f = File.open("./js/#{file}")
+        content = f.read
+        out << "<script>"
+        out << content
+        out << "</script>"
+    f.close
+    return out
+ end

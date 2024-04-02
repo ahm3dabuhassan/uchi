@@ -1,0 +1,6 @@
+USER:Pictures:
+	DIRECTORIES: /Users/ahmedabu-hassan/Desktop/uchi/Users/macboy/Pictures, SIZE: 160 Byte, TIME: 03/28/2024 at 10:16 AM
+	DIRECTORIES: /Users/ahmedabu-hassan/Desktop/uchi/Users/macboy/Pictures/Old, SIZE: 64 Byte, TIME: 03/24/2024 at 05:14 PM
+	DIRECTORIES: /Users/ahmedabu-hassan/Desktop/uchi/Users/macboy/Pictures/Cupertino, SIZE: 64 Byte, TIME: 03/28/2024 at 10:16 AM
+USER:Text:
+	DIRECTORIES: /Users/ahmedabu-hassan/Desktop/uchi/Users/macboy/Text, SIZE: 64 Byte, TIME: 03/24/2024 at 04:36 PM

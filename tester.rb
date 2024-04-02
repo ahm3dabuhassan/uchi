@@ -60,3 +60,26 @@ end
 
 testString = CompareString.new("Hello","Hello").go()
 puts testString
+
+def set_interval(delay)
+    Thread.new do
+      loop do
+        sleep delay
+        yield # call passed block
+      end
+    end
+  end
+  t1 = Time.now; 
+  t = set_interval(2.5) {puts Time.now - t1}
+
+asx = ["Rio","Tokyo","Prague"]
+for i in asx 
+    sleep 2.5
+    puts i
+end
+cvb = 0
+while cvb < 60 do 
+    sleep 1
+    cvb +=1
+    puts cvb
+end
