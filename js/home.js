@@ -1,4 +1,4 @@
-//console.log(document.cookie);
+
 let validForm = {
     source: null,
     trigger: null,
