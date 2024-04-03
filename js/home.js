@@ -19,6 +19,3 @@ let validForm = {
     }
 }
 validForm.init();
-console.log(document.cookie);
-document.cookie = "";
-console.log(document.cookie);
