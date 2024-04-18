@@ -148,6 +148,7 @@ loop do
         body = client.read(headers['Content-Length'].to_i)
         mv_file = JSON.parse(body)
         puts mv_file
+        puts "A:. #{mv_file["s"][/(?<=^)(.*)(?=\/[a-zA-Z0-9\_\-]+\.*[a-z]{2,3}$)/]}"
     end
     http_response = <<~MSG
     HTTP/1.1 #{status_code}
