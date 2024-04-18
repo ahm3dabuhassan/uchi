@@ -8,7 +8,7 @@ let taskFile = {
     controlPanel: {
         el: document.createElement('div'), // Parent, Target for Childs..
         child: document.createElement('div'), // Child
-        components:[document.createElement('button'),document.createElement('p'),document.createElement('p'),document.createElement('button'),document.createElement('button'),document.createElement('select')] 
+        components:[document.createElement('button'),document.createElement('p'),document.createElement('p'),document.createElement('button'),document.createElement('button'),document.createElement('button'),document.createElement('div')] 
     },
     fileID: null,
     typeOfTask: 'boot',
@@ -16,20 +16,21 @@ let taskFile = {
     directories: null, 
     index: null,
     amoutOfChildren: null,
+    funk: null,
     init: () => {
         this.source = document.querySelectorAll(".inside-action");
         for(let i=0; i<this.source.length; i++){
             this.source[i].addEventListener('click', taskFile.build);
         }
     },
-    connect: (typeOfTask, fileID, funk) => { // typeOfTask
+    connect: (typeOfTask, fileID, funk=null) => { 
         console.log(typeOfTask);
         fetch(`http://127.0.0.1:8080/taskFile/${typeOfTask}/${fileID}`) 
                     .then(response => { 
                         return response.json();
                     })
                     .then(response => {
-                        taskFile.insertData(taskFile.controlPanel.components[5], 'option', response);
+                            taskFile.funk = funk(response);
                     })
                     .catch(err => {
                         console.log(err);
@@ -53,8 +54,12 @@ let taskFile = {
                 taskFile.controlPanel.components[4].innerHTML = 'Delete';
                 taskFile.controlPanel.components[4].id = 'delete';
                 taskFile.controlPanel.components[4].value = this.fileID;
+                taskFile.controlPanel.components[5].innerHTML = 'Move to';
+                taskFile.controlPanel.components[5].id = 'move';
+                taskFile.controlPanel.components[5].value = this.fileID;
+                taskFile.controlPanel.components[5].addEventListener('click',taskFile.move);
                 taskFile.controlPanel.components[0].innerHTML = 'X';
-                taskFile.controlPanel.components[0].id = 'cancel'; // (e) => { taskFile.rename(); taskFile.typeOfTask = e.target.id; taskFile.connect(taskFile.typeOfTask,e.target.parentElement.parentElement.getAttribute('name'),false)}
+                taskFile.controlPanel.components[0].id = 'cancel'; 
                 taskFile.controlPanel.el.appendChild(taskFile.controlPanel.components[0]);
                 taskFile.controlPanel.components[3].addEventListener('click', taskFile.rename);
                 taskFile.controlPanel.components[4].addEventListener('click', taskFile.delete);
@@ -70,46 +75,107 @@ let taskFile = {
                 taskFile.controlPanel.child.setAttribute('style','width:96%;height:100%;padding:3%;background-color:whitesmoke;');
                 taskFile.controlPanel.el.appendChild(taskFile.controlPanel.child);
                 document.body.appendChild(taskFile.controlPanel.el);
-                taskFile.connect(taskFile.typeOfTask, this.fileID);
             } 
         }
     },
-    insertData: (target,typeOfElement,data) => { // REG-OPTION=null -> if != null 
-      this.index = taskFile.controlPanel.components.length;
-      this.amoutOfChildren = document.querySelectorAll('.insert-data');
-      if(this.amoutOfChildren != null){
-        for(let i=0; i<this.amoutOfChildren.length; i++){
-            this.amoutOfChildren[i].remove();
-        }
-      } 
-      taskFile.controlPanel.components[taskFile.index] = document.createElement(typeOfElement);
-      taskFile.controlPanel.components[taskFile.index].innerHTML = "Move to:";
-      taskFile.controlPanel.components[taskFile.index].selected = true;
-      taskFile.controlPanel.components[taskFile.index].className = "insert-data";
-      target.appendChild(taskFile.controlPanel.components[taskFile.index]);
-      for(let i=0; i<data.length; i++){
-            taskFile.controlPanel.components[taskFile.index] = document.createElement(typeOfElement);
-            taskFile.controlPanel.components[taskFile.index].innerHTML = data[i];//.match(/macboy\/{1}[a-zA-Z0-9\/\-\_]+/);
-            taskFile.controlPanel.components[taskFile.index].className = "insert-data";
-            target.appendChild(taskFile.controlPanel.components[taskFile.index]);
-        }
-      this.index = taskFile.controlPanel.components.length;
+    move: (e) => {
+        taskFile.typeOfTask = 'move';
+        console.log(e.target.parentElement.parentElement.getAttribute("name"));
+        taskFile.index = taskFile.controlPanel.components.length;
+        taskFile.controlPanel.components[taskFile.index] = document.createElement('div');
+        taskFile.controlPanel.components[taskFile.index].setAttribute("style","width:80%;background-color:blue;border-radius:10px;padding:2%;position:absolute;z-index:100;color:white;left:7%;top:32%;");
+        taskFile.controlPanel.components[taskFile.index].innerHTML = "<div id='inside-move-overview'><span class=\"material-symbols-outlined\">home_app_logo</span><p>Übersicht über Folders</p></div>";
+        taskFile.connect(taskFile.typeOfTask,e.target.parentElement.parentElement.getAttribute('name'), (x) => {taskFile.insertData(taskFile.controlPanel.components[taskFile.index],x)});
+        document.body.appendChild(taskFile.controlPanel.components[taskFile.index]);
     },
     rename: (e) => {
         console.log("RENAME");
         taskFile.typeOfTask = 'rename';
+        /// HIER - BUTTON MIT CONFIRM... 
+        // insertBefore(newNode, referenceNode)
         taskFile.controlPanel.components[taskFile.index] = document.createElement('input');
         taskFile.controlPanel.components[taskFile.index].className = "insert-data";
         taskFile.controlPanel.components[taskFile.index].id = "rename-newValue";
         taskFile.controlPanel.components[taskFile.index].value = e.target.parentElement.parentElement.getAttribute('name').match(/[a-zA-Z0-9]+\.?[a-zA-Z0-9]{2,3}?$/)[0];
-        console.log(taskFile.controlPanel.components[taskFile.index]);
         e.target.parentElement.appendChild(taskFile.controlPanel.components[taskFile.index]);
-        console.log(e.target.parentElement);
-      //  taskFile.connect(taskFile.typeOfTask,e.target.parentElement.parentElement.getAttribute('name'));
+        taskFile.connect(taskFile.typeOfTask,e.target.parentElement.parentElement.getAttribute('name'));
     },
     delete: (e) => {
         taskFile.typeOfTask = 'delete';
         taskFile.connect(taskFile.typeOfTask,e.target.parentElement.parentElement.getAttribute('name'));
+    },
+    insertData: (target,content) => {
+        for(let key in content){
+            taskFile.index++;
+            taskFile.controlPanel.components[taskFile.index] = document.createElement('div');
+            taskFile.controlPanel.components[taskFile.index].setAttribute('style','width:20%;min-height:20vh;border:1px solid white;border-radius:5px;font-size:12px;float:left;margin-right:5px;margin-bottom:5px;');
+            taskFile.controlPanel.components[taskFile.index].innerHTML = `<div class="inside-move-overview-child-header"><p>PATH: <span style="font-size:10px;color:white;">${key.match(/Users\/{1}[a-zA-Z0-9\/\_]+$/)}</span></p></div><p>INHALT:</p>`;
+            taskFile.controlPanel.components[taskFile.index].id = key.match(/[a-zA-Z0-9\_\-]+\/{1}[a-zA-Z0-9\_\-]+$/)[0];
+            taskFile.controlPanel.components[taskFile.index].className = "move-directories";
+            if(content[key].length != 0){
+                for(let i=0; i<content[key].length; i++){ 
+                    if(content[key][i].match(/^(file|dir)/)[0] == 'file'){
+                        taskFile.controlPanel.components[taskFile.index].innerHTML += `<p class="move-elements" name="file" id="${key.match(/[a-zA-Z0-9\_\-]+\/{1}[a-zA-Z0-9\_\-]+$/)[0]}/${content[key][i].match(/[a-zA-Z0-9]+\.*[a-zA-Z]*$/)[0]}" draggable="true"><span class="material-symbols-outlined">article</span>Name: ${content[key][i].match(/[a-zA-Z0-9]+\.*[a-zA-Z]*$/)[0]}</p>`;
+                    }else if(content[key][i].match(/^(file|dir)/)[0] == 'dir'){
+                        taskFile.controlPanel.components[taskFile.index].innerHTML += `<p class="move-elements" name="directory" id="${key.match(/[a-zA-Z0-9\_\-]+\/{1}[a-zA-Z0-9\_\-]+$/)[0]}/${content[key][i].match(/[a-zA-Z0-9]+\.*[a-zA-Z]*$/)[0]}" draggable="true"><span class="material-symbols-outlined">folder</span>Name: ${content[key][i].match(/[a-zA-Z0-9]+\.*[a-zA-Z]*$/)[0]}</p>`;
+                    } 
+                }
+            }else {
+                taskFile.controlPanel.components[taskFile.index].innerHTML += `<p class="empty-folder"><span class="material-symbols-outlined">folder</span>Empty Folder</p>`;
+            }
+            taskFile.controlPanel.components[taskFile.index].innerHTML += `</div>`;
+            target.appendChild(taskFile.controlPanel.components[taskFile.index]);
+        }
+        let checkElements = document.querySelectorAll('.move-elements');
+        for(let i=0; i<checkElements.length; i++){
+            checkElements[i].addEventListener('dragstart', taskFile.drag);
+        }
+        let assignEventToDirectories = document.querySelectorAll('.move-directories');
+        for(let i=0; i<assignEventToDirectories.length; i++){
+            assignEventToDirectories[i].addEventListener('drop', taskFile.drop);
+            assignEventToDirectories[i].addEventListener('dragover', taskFile.allowDrop);
+        }
+    },
+    drag: (e) => {
+        console.log(e.target.id, e.target.getAttribute('name'));
+        let was = e.target.getAttribute('name');
+        e.dataTransfer.setData('text', JSON.stringify({id:e.target.id,type:was}));
+        // OBJEKT SETZEN 
+    },
+    drop: (e) => {
+        console.log("DROP..");
+        taskFile.typeOfTask = "moved"
+        console.log(e.currentTarget);
+        e.preventDefault();
+        console.log(`DROP-EVENT: ${e.target.id}`);
+        let data = JSON.parse(e.dataTransfer.getData("text"));
+        console.log(`DATA:: ${data.id}, ${data.type}`); 
+        taskFile.connect(taskFile.typeOfTask, `${data.type}/${JSON.stringify({s:data.id,d:e.currentTarget.id})}`, (x) => {console.log(`MOVED:: ${x}`);});
+        e.currentTarget.appendChild(document.getElementById(data["id"]));
+        // FETCH!!!!
+    },
+    allowDrop: (e) => {
+        e.preventDefault();
     }
-} 
+}
 document.body.addEventListener('onload', taskFile.init());
+
+/*
+{/Users/ahmedabu-hassan/Desktop/uchi/Users/macboy: "dir-Text", /Users/ahmedabu-hassan/Desktop/uchi/Users/macboy/Pictures: "dir-Cupertino",
+/Users/ahmedabu-hassan/Desktop/uchi/Users/macboy/Text: "file-Moin.txt", /Users/ahmedabu-hassan/Desktop/uchi/Users/macboy/Pictures/Old: "file-hello.txt", 
+/Users/ahmedabu-hassan/Desktop/uchi/Users/macboy/Pictures/Cupertino: "dir-Now"}
+-----------
+  connect: (typeOfTask, fileID, funk=null) => { 
+        console.log(typeOfTask);
+        fetch(`http://127.0.0.1:8080/taskFile/${typeOfTask}/${fileID}`) 
+                    .then(response => { 
+                        return response.json();
+                    })
+                    .then(response => {
+                            taskFile.funk = funk(response);
+                    })
+                    .catch(err => {
+                        console.log(err);
+                    })    
+    },
+*/
