@@ -23,9 +23,9 @@ let taskFile = {
             this.source[i].addEventListener('click', taskFile.build);
         }
     },
-    connect: (typeOfTask, fileID, funk=null) => { 
+    connect: (typeOfTask, fileID, funk=null, headBody=null) => { 
         console.log(typeOfTask);
-        fetch(`http://127.0.0.1:8080/taskFile/${typeOfTask}/${fileID}`) 
+        fetch(`http://127.0.0.1:8080/taskFile/${typeOfTask}/${fileID}`, headBody) 
                     .then(response => { 
                         return response.json();
                     })
@@ -149,33 +149,18 @@ let taskFile = {
         e.preventDefault();
         console.log(`DROP-EVENT: ${e.target.id}`);
         let data = JSON.parse(e.dataTransfer.getData("text"));
-        console.log(`DATA:: ${data.id}, ${data.type}`); 
-        taskFile.connect(taskFile.typeOfTask, `${data.type}/${JSON.stringify({s:data.id,d:e.currentTarget.id})}`, (x) => {console.log(`MOVED:: ${x}`);});
+        console.log(`DATA:: ${data.id}, ${data.type}`); // ${JSON.stringify({s:data.id,d:e.currentTarget.id})}
+        taskFile.connect(taskFile.typeOfTask, `${data.type}/`, (x) => {console.log(`MOVED:: ${x}`);}, {headers:{
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
+        method: 'POST',
+        body: JSON.stringify({s:data.id,d:e.currentTarget.id})
+    });
         e.currentTarget.appendChild(document.getElementById(data["id"]));
-        // FETCH!!!!
     },
     allowDrop: (e) => {
         e.preventDefault();
     }
 }
 document.body.addEventListener('onload', taskFile.init());
-
-/*
-{/Users/ahmedabu-hassan/Desktop/uchi/Users/macboy: "dir-Text", /Users/ahmedabu-hassan/Desktop/uchi/Users/macboy/Pictures: "dir-Cupertino",
-/Users/ahmedabu-hassan/Desktop/uchi/Users/macboy/Text: "file-Moin.txt", /Users/ahmedabu-hassan/Desktop/uchi/Users/macboy/Pictures/Old: "file-hello.txt", 
-/Users/ahmedabu-hassan/Desktop/uchi/Users/macboy/Pictures/Cupertino: "dir-Now"}
------------
-  connect: (typeOfTask, fileID, funk=null) => { 
-        console.log(typeOfTask);
-        fetch(`http://127.0.0.1:8080/taskFile/${typeOfTask}/${fileID}`) 
-                    .then(response => { 
-                        return response.json();
-                    })
-                    .then(response => {
-                            taskFile.funk = funk(response);
-                    })
-                    .catch(err => {
-                        console.log(err);
-                    })    
-    },
-*/
