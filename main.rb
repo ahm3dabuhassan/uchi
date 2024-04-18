@@ -1,9 +1,11 @@
 require 'socket'
 require 'uri'
 require 'net/http'
+require 'json'
+require 'fileutils'
 require './globalFunctions.rb'
 require './html_templates/template.rb'
-require 'json'
+
 
 home = `echo $HOME`
 HOME = "/Users/ahmedabu-hassan/Desktop/uchi/Users"
@@ -78,6 +80,7 @@ loop do
             userData[:allFolders] = file_overview.allDirectories
             present = Overview.new(file_overview.allDirectories, userData["Username"])
             userData[:username] = userData["Username"]
+            userData[:user_root_folder] = "#{USER_ROOT_FOLDER}/#{userData["Username"]}"
             user_cookie_location = ""
             response_message = headInside("Inside",target[/[a-zA-Z0-9]+$/])
             response_message << present.output
@@ -147,8 +150,11 @@ loop do
         end
         body = client.read(headers['Content-Length'].to_i)
         mv_file = JSON.parse(body)
-        puts mv_file
-        puts "A:. #{mv_file["s"][/(?<=^)(.*)(?=\/[a-zA-Z0-9\_\-]+\.*[a-z]{2,3}$)/]}"
+        Dir.chdir("#{HOME}/#{mv_file["s"][/(?<=^)(.*)(?=\/[a-zA-Z0-9\_\-]+\.*[a-z]{2,3}$)/]}")
+        puts Dir.getwd
+        puts "ROOT: #{userData[:user_root_folder]}"
+        puts mv_file["s"], mv_file["d"]
+       # FileUtils.mv("#{HOME}/#{mv_file["s"]}", "#{HOME}/#{mv_file["d"]}")
     end
     http_response = <<~MSG
     HTTP/1.1 #{status_code}
