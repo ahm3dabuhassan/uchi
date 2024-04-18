@@ -137,6 +137,7 @@ loop do
         end
     when ['POST', target[/^\/{1}taskFile\/{1}moved\/{1}[a-zA-Z0-9]+\/{1}$/]]
         puts "moved!"
+        status_code = "200 OK"
         headers = {}
         while true do 
             line = client.readline
@@ -147,7 +148,8 @@ loop do
         body = client.read(headers['Content-Length'].to_i)
         folderData = JSON.parse(body)
         puts folderData
-        #Dir.chdir("#{HOME}/#{folderData["s"]}")
+        puts 
+        #Dir.chdir("#{HOME}/#{folderData["s"][//]}")
         #puts Dir.getwd
     end
     http_response = <<~MSG
