@@ -112,7 +112,7 @@ loop do
             Set-Cookie: session_uid=#{userData["Id"]}_#{userData["Username"]};Max-Age=0
             Location: /home
         STR
-    when ['GET', target[/^\/{1}taskFile\/{1}(boot|move|rename|delete|moved)\/{1}(file|directory)\/{1}[a-zA-Z0-9\/\.\-\%\,\:]+/]] # file/macboy/Folders.txt
+    when ['GET', target[/^\/{1}taskFile\/{1}(boot|move|rename|delete)\/{1}(file|directory)\/{1}[a-zA-Z0-9\/\.\-\%\,\:]+/]] # file/macboy/Folders.txt
         status_code = "200 OK"
         puts "TASK-FILE.." 
         puts "AA::: #{target[/(?<=\/{1}taskFile\/{1})(.*)(?=\/{1}directory|\/{1}file)/]}"
@@ -154,7 +154,7 @@ loop do
         puts Dir.getwd
         puts "ROOT: #{userData[:user_root_folder]}"
         puts mv_file["s"], mv_file["d"]
-       # FileUtils.mv("#{HOME}/#{mv_file["s"]}", "#{HOME}/#{mv_file["d"]}")
+        FileUtils.mv("#{HOME}/#{mv_file["s"]}", "#{HOME}/#{mv_file["d"]}")
     end
     http_response = <<~MSG
     HTTP/1.1 #{status_code}
