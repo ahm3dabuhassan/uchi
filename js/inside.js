@@ -140,7 +140,6 @@ let taskFile = {
         console.log(e.target.id, e.target.getAttribute('name'));
         let was = e.target.getAttribute('name');
         e.dataTransfer.setData('text', JSON.stringify({id:e.target.id,type:was}));
-        // OBJEKT SETZEN 
     },
     drop: (e) => {
         console.log("DROP..");
@@ -149,7 +148,7 @@ let taskFile = {
         e.preventDefault();
         console.log(`DROP-EVENT: ${e.target.id}`);
         let data = JSON.parse(e.dataTransfer.getData("text"));
-        console.log(`DATA:: ${data.id}, ${data.type}`); // ${JSON.stringify({s:data.id,d:e.currentTarget.id})}
+        console.log(`DATA:: ${data.id}, ${data.type}`); 
         taskFile.connect(taskFile.typeOfTask, `${data.type}/`, (x) => {console.log(`MOVED:: ${x}`);}, {headers:{
             'Accept': 'application/json',
             'Content-Type': 'application/json'
