@@ -6,7 +6,7 @@ require './html_templates/template.rb'
 require 'json'
 
 home = `echo $HOME`
-HOME = "#{home}/Desktop/uchi/"
+HOME = "/Users/ahmedabu-hassan/Desktop/uchi/Users"
 puts HOME
 server = TCPServer.new(8080)
 
@@ -111,24 +111,17 @@ loop do
         STR
     when ['GET', target[/^\/{1}taskFile\/{1}(boot|move|rename|delete|moved)\/{1}(file|directory)\/{1}[a-zA-Z0-9\/\.\-\%\,\:]+/]] # file/macboy/Folders.txt
         status_code = "200 OK"
-        puts "TASK-FILE.."
-        # target[/(?<=\/{1}taskFile\/{1})(.*)(?=\/{1}directory|\/{1}file)/] - works!
+        puts "TASK-FILE.." 
         puts "AA::: #{target[/(?<=\/{1}taskFile\/{1})(.*)(?=\/{1}directory|\/{1}file)/]}"
-        case[target[/(?<=\/{1}taskFile\/{1})(.*)(?=\/{1}directory|\/{1}file)/]]
-        when ['moved']
-            puts "moved!"
-            checkJSON = target[/(?<=file\/{1}|directory\/{1})[a-zA-Z0-9\%\:\,\.\/]+$/]
-            puts checkJSON
-          #  puts JSON.parse(checkJSON)
+        case[method_token, target[/(?<=\/{1}taskFile\/{1})(.*)(?=\/{1}directory|\/{1}file)/]]
         when ['rename']
             puts "rename!"
-        when ['move']
+        when ['GET','move']
             puts "move!"
             userData[:responseData] = {}
             userData[:allFolders][userData[:username]].each {|w|
                Dir.chdir(w)
                allFiles = Dir.glob("*")
-               puts "Die laenge von allFiles: #{allFiles.length}" 
                userData[:responseData][w] = [] 
                allFiles.each { |i|
                recognize = File.stat(i)
@@ -140,9 +133,22 @@ loop do
             }    
             }
             puts userData[:responseData].to_json
-            response_message = userData[:responseData].to_json # JSON!!!   
+            response_message = userData[:responseData].to_json  
         end
-        
+    when ['POST', target[/^\/{1}taskFile\/{1}moved\/{1}[a-zA-Z0-9]+\/{1}$/]]
+        puts "moved!"
+        headers = {}
+        while true do 
+            line = client.readline
+            break if line == "\r\n"
+            header_name, value = line.split(": ")  
+            headers[header_name] = value          
+        end
+        body = client.read(headers['Content-Length'].to_i)
+        folderData = JSON.parse(body)
+        puts folderData
+        #Dir.chdir("#{HOME}/#{folderData["s"]}")
+        #puts Dir.getwd
     end
     http_response = <<~MSG
     HTTP/1.1 #{status_code}
