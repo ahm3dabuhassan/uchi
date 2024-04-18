@@ -146,11 +146,8 @@ loop do
             headers[header_name] = value          
         end
         body = client.read(headers['Content-Length'].to_i)
-        folderData = JSON.parse(body)
-        puts folderData
-        puts 
-        #Dir.chdir("#{HOME}/#{folderData["s"][//]}")
-        #puts Dir.getwd
+        mv_file = JSON.parse(body)
+        puts mv_file
     end
     http_response = <<~MSG
     HTTP/1.1 #{status_code}
