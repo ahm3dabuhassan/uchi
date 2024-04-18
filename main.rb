@@ -5,6 +5,9 @@ require './globalFunctions.rb'
 require './html_templates/template.rb'
 require 'json'
 
+home = `echo $HOME`
+HOME = "#{home}/Desktop/uchi/"
+puts HOME
 server = TCPServer.new(8080)
 
 userData = {   
@@ -106,30 +109,39 @@ loop do
             Set-Cookie: session_uid=#{userData["Id"]}_#{userData["Username"]};Max-Age=0
             Location: /home
         STR
-    when ['GET', target[/^\/{1}taskFile\/{1}(boot|move|rename|delete)\/{1}(file|directory)\/{1}[a-zA-Z0-9\/\.\-]+/]] # file/macboy/Folders.txt
+    when ['GET', target[/^\/{1}taskFile\/{1}(boot|move|rename|delete|moved)\/{1}(file|directory)\/{1}[a-zA-Z0-9\/\.\-\%\,\:]+/]] # file/macboy/Folders.txt
         status_code = "200 OK"
         puts "TASK-FILE.."
-        puts target
-        userData[:responseData] = []
-        saveDirectory =  target[/[a-zA-Z0-9\-\_]+\/{1}[a-zA-Z0-9\-\_]+\.?[a-zA-Z]{2,3}?$/]
-        case [target[/(file|directory)/]]
-        when ['file']
-            puts "FILE:::..."
-            userData[:allFolders][userData[:username]].each { |i|
-            if i[/[a-zA-Z0-9]+$/] !=  saveDirectory[/^[a-zA-Z0-9\-\_]+/]
-               userData[:responseData] << i
-            end
+        # target[/(?<=\/{1}taskFile\/{1})(.*)(?=\/{1}directory|\/{1}file)/] - works!
+        puts "AA::: #{target[/(?<=\/{1}taskFile\/{1})(.*)(?=\/{1}directory|\/{1}file)/]}"
+        case[target[/(?<=\/{1}taskFile\/{1})(.*)(?=\/{1}directory|\/{1}file)/]]
+        when ['moved']
+            puts "moved!"
+            checkJSON = target[/(?<=file\/{1}|directory\/{1})[a-zA-Z0-9\%\:\,\.\/]+$/]
+            puts checkJSON
+          #  puts JSON.parse(checkJSON)
+        when ['rename']
+            puts "rename!"
+        when ['move']
+            puts "move!"
+            userData[:responseData] = {}
+            userData[:allFolders][userData[:username]].each {|w|
+               Dir.chdir(w)
+               allFiles = Dir.glob("*")
+               puts "Die laenge von allFiles: #{allFiles.length}" 
+               userData[:responseData][w] = [] 
+               allFiles.each { |i|
+               recognize = File.stat(i)
+               if recognize.file?
+                userData[:responseData][w] << "file-#{i}"
+               elsif recognize.directory?
+                userData[:responseData][w] << "dir-#{i}"
+               end
+            }    
             }
-        when ['directory']
-            puts "DIRECTORY:::..."
-            userData[:allFolders][userData[:username]].each { |i|
-            if i[/[a-zA-Z0-9]+$/] !=  saveDirectory[/^[a-zA-Z0-9\-\_]+/] && i[/[a-zA-Z0-9]+$/] !=  target[/[a-zA-Z0-9\-\_]+$/]
-               userData[:responseData] << i
-            end
-            }
-        end    
-        puts userData[:responseData]
-        response_message = userData[:responseData].to_json # JSON!!!
+            puts userData[:responseData].to_json
+            response_message = userData[:responseData].to_json # JSON!!!   
+        end
         
     end
     http_response = <<~MSG
