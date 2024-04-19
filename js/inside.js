@@ -108,7 +108,7 @@ let taskFile = {
     insertData: (target,content) => {
         taskFile.username = document.getElementsByTagName("h1")[0].innerHTML;
         taskFile.username = taskFile.username.match(/(?:Hello, )(.*)(?=\.$)/)[1];
-        let patz = `${taskFile.username}\/{1}[a-zA-Z\/]+$`;
+        let patz = `${taskFile.username}[a-zA-Z\/]*$`;
         let w = new RegExp(patz,'g');
         for(let key in content){
             console.log(key);
@@ -117,14 +117,7 @@ let taskFile = {
             taskFile.controlPanel.components[taskFile.index] = document.createElement('div');
             taskFile.controlPanel.components[taskFile.index].setAttribute('style','width:20%;min-height:20vh;border:1px solid white;border-radius:5px;font-size:12px;float:left;margin-right:5px;margin-bottom:5px;');
             taskFile.controlPanel.components[taskFile.index].innerHTML = `<div class="inside-move-overview-child-header"><p>PATH: <span style="font-size:10px;color:white;">${key.match(/Users\/{1}[a-zA-Z0-9\/\_]+$/)}</span></p></div><p>INHALT:</p>`;
-            if(key.match(patz) != null){
-                taskFile.controlPanel.components[taskFile.index].id = key.match(patz);
-            }else{
-                console.log(`ERROR::: ${taskFile.username}`);
-                console.log(key.match(/[a-zA-Z\-\_]+\.?[a-zA-Z]{0,3}$/))[1];
-                // WHY? WHY? WHY? WHY id == undefined?
-                taskFile.controlPanel.components[taskFile.index].id = key.match(/[a-zA-Z\-\_]+\.?[a-zA-Z]{0,3}$/)[1];
-            }
+            taskFile.controlPanel.components[taskFile.index].id = key.match(patz);  
             taskFile.controlPanel.components[taskFile.index].className = "move-directories";
             if(content[key].length != 0){
                 for(let i=0; i<content[key].length; i++){ 
