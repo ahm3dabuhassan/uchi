@@ -17,6 +17,7 @@ let taskFile = {
     index: null,
     amoutOfChildren: null,
     funk: null,
+    username: null, 
     init: () => {
         this.source = document.querySelectorAll(".inside-action");
         for(let i=0; i<this.source.length; i++){
@@ -71,7 +72,7 @@ let taskFile = {
                 taskFile.y = taskFile.positionRequest.top;
                 taskFile.x = taskFile.positionRequest.left;
                 taskFile.controlPanel.el.id = "inside-control-panel";
-                taskFile.controlPanel.el.setAttribute('style',`width:400px;padding-left:1%;padding-right:1.4%;padding-bottom:1%;border:1px solid orangered;background-color:white;border-radius:16px;box-shadow: 5px 5px 2px 1px rgb(60, 60, 60, 0.1);position:absolute;left:${taskFile.x-460}px;top:${taskFile.y}px;`);
+                taskFile.controlPanel.el.setAttribute('style',`width:400px;padding-left:1%;padding-right:1.4%;padding-bottom:1%;background-color:blue;border-radius:16px;box-shadow: 5px 5px 2px 1px rgb(60, 60, 60, 0.1);position:absolute;left:${taskFile.x-460}px;top:${taskFile.y}px;`);
                 taskFile.controlPanel.child.setAttribute('style','width:96%;height:100%;padding:3%;background-color:whitesmoke;');
                 taskFile.controlPanel.el.appendChild(taskFile.controlPanel.child);
                 document.body.appendChild(taskFile.controlPanel.el);
@@ -105,19 +106,32 @@ let taskFile = {
         taskFile.connect(taskFile.typeOfTask,e.target.parentElement.parentElement.getAttribute('name'));
     },
     insertData: (target,content) => {
+        taskFile.username = document.getElementsByTagName("h1")[0].innerHTML;
+        taskFile.username = taskFile.username.match(/(?:Hello, )(.*)(?=\.$)/)[1];
+        let patz = `${taskFile.username}\/{1}[a-zA-Z\/]+$`;
+        let w = new RegExp(patz,'g');
         for(let key in content){
+            console.log(key);
+            console.log(key.match(patz));
             taskFile.index++;
             taskFile.controlPanel.components[taskFile.index] = document.createElement('div');
             taskFile.controlPanel.components[taskFile.index].setAttribute('style','width:20%;min-height:20vh;border:1px solid white;border-radius:5px;font-size:12px;float:left;margin-right:5px;margin-bottom:5px;');
             taskFile.controlPanel.components[taskFile.index].innerHTML = `<div class="inside-move-overview-child-header"><p>PATH: <span style="font-size:10px;color:white;">${key.match(/Users\/{1}[a-zA-Z0-9\/\_]+$/)}</span></p></div><p>INHALT:</p>`;
-            taskFile.controlPanel.components[taskFile.index].id = key.match(/[a-zA-Z0-9\_\-]+\/{1}[a-zA-Z0-9\_\-]+$/)[0];
+            if(key.match(patz) != null){
+                taskFile.controlPanel.components[taskFile.index].id = key.match(patz);
+            }else{
+                console.log(`ERROR::: ${taskFile.username}`);
+                console.log(key.match(/[a-zA-Z\-\_]+\.?[a-zA-Z]{0,3}$/))[1];
+                // WHY? WHY? WHY? WHY id == undefined?
+                taskFile.controlPanel.components[taskFile.index].id = key.match(/[a-zA-Z\-\_]+\.?[a-zA-Z]{0,3}$/)[1];
+            }
             taskFile.controlPanel.components[taskFile.index].className = "move-directories";
             if(content[key].length != 0){
                 for(let i=0; i<content[key].length; i++){ 
                     if(content[key][i].match(/^(file|dir)/)[0] == 'file'){
-                        taskFile.controlPanel.components[taskFile.index].innerHTML += `<p class="move-elements" name="file" id="${key.match(/[a-zA-Z0-9\_\-]+\/{1}[a-zA-Z0-9\_\-]+$/)[0]}/${content[key][i].match(/[a-zA-Z0-9]+\.*[a-zA-Z]*$/)[0]}" draggable="true"><span class="material-symbols-outlined">article</span>Name: ${content[key][i].match(/[a-zA-Z0-9]+\.*[a-zA-Z]*$/)[0]}</p>`;
+                        taskFile.controlPanel.components[taskFile.index].innerHTML += `<p class="move-elements" name="file" id="${key.match(patz)[0]}/${content[key][i].match(/[a-zA-Z0-9]+\.*[a-zA-Z]*$/)[0]}" draggable="true"><span class="material-symbols-outlined">article</span>Name: ${content[key][i].match(/[a-zA-Z0-9]+\.*[a-zA-Z]*$/)[0]}</p>`;
                     }else if(content[key][i].match(/^(file|dir)/)[0] == 'dir'){
-                        taskFile.controlPanel.components[taskFile.index].innerHTML += `<p class="move-elements" name="directory" id="${key.match(/[a-zA-Z0-9\_\-]+\/{1}[a-zA-Z0-9\_\-]+$/)[0]}/${content[key][i].match(/[a-zA-Z0-9]+\.*[a-zA-Z]*$/)[0]}" draggable="true"><span class="material-symbols-outlined">folder</span>Name: ${content[key][i].match(/[a-zA-Z0-9]+\.*[a-zA-Z]*$/)[0]}</p>`;
+                        taskFile.controlPanel.components[taskFile.index].innerHTML += `<p class="move-elements" name="directory" id="${key.match(patz)}/${content[key][i].match(/[a-zA-Z0-9]+\.*[a-zA-Z]*$/)[0]}" draggable="true"><span class="material-symbols-outlined">folder</span>Name: ${content[key][i].match(/[a-zA-Z0-9]+\.*[a-zA-Z]*$/)[0]}</p>`;
                     } 
                 }
             }else {
@@ -137,18 +151,14 @@ let taskFile = {
         }
     },
     drag: (e) => {
-        console.log(e.target.id, e.target.getAttribute('name'));
         let was = e.target.getAttribute('name');
         e.dataTransfer.setData('text', JSON.stringify({id:e.target.id,type:was}));
     },
     drop: (e) => {
         console.log("DROP..");
         taskFile.typeOfTask = "moved"
-        console.log(e.currentTarget);
         e.preventDefault();
-        console.log(`DROP-EVENT: ${e.target.id}`);
         let data = JSON.parse(e.dataTransfer.getData("text"));
-        console.log(`DATA:: ${data.id}, ${data.type}`); 
         taskFile.connect(taskFile.typeOfTask, `${data.type}/`, (x) => {console.log(`MOVED:: ${x}`);}, {headers:{
             'Accept': 'application/json',
             'Content-Type': 'application/json'
@@ -157,6 +167,8 @@ let taskFile = {
         body: JSON.stringify({s:data.id,d:e.currentTarget.id})
     });
         e.currentTarget.appendChild(document.getElementById(data["id"]));
+        let updateID = document.getElementById(data.id);
+        updateID.id = `${e.currentTarget.id}/${data.id.match(/[a-zA-Z\-\_]+\.?[a-zA-Z]{0,3}$/)}`;
     },
     allowDrop: (e) => {
         e.preventDefault();
