@@ -110,8 +110,7 @@ let taskFile = {
         taskFile.connect(taskFile.typeOfTask,e.target.parentElement.parentElement.getAttribute('name'));
     },
     insertData: (target,content) => {
-        taskFile.username = document.getElementsByTagName("h1")[0].innerHTML;
-        taskFile.username = taskFile.username.match(/(?:Hello, )(.*)(?=\.$)/)[1];
+        taskFile.username = document.cookie.match(/[a-zA-Z0-9]+$/);
         taskFile.regEx.pattern = `${taskFile.username}[a-zA-Z\/]*$`;
         taskFile.regEx.instance = new RegExp(taskFile.regEx.pattern, 'g');
         for(let key in content){
