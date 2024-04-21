@@ -18,6 +18,10 @@ let taskFile = {
     amoutOfChildren: null,
     funk: null,
     username: null, 
+    regEx:{ 
+        pattern: null,
+        instance: null
+    }, 
     init: () => {
         this.source = document.querySelectorAll(".inside-action");
         for(let i=0; i<this.source.length; i++){
@@ -108,23 +112,21 @@ let taskFile = {
     insertData: (target,content) => {
         taskFile.username = document.getElementsByTagName("h1")[0].innerHTML;
         taskFile.username = taskFile.username.match(/(?:Hello, )(.*)(?=\.$)/)[1];
-        let patz = `${taskFile.username}[a-zA-Z\/]*$`;
-        let w = new RegExp(patz,'g');
+        taskFile.regEx.pattern = `${taskFile.username}[a-zA-Z\/]*$`;
+        taskFile.regEx.instance = new RegExp(taskFile.regEx.pattern, 'g');
         for(let key in content){
-            console.log(key);
-            console.log(key.match(patz));
             taskFile.index++;
             taskFile.controlPanel.components[taskFile.index] = document.createElement('div');
             taskFile.controlPanel.components[taskFile.index].setAttribute('style','width:20%;min-height:20vh;border:1px solid white;border-radius:5px;font-size:12px;float:left;margin-right:5px;margin-bottom:5px;');
             taskFile.controlPanel.components[taskFile.index].innerHTML = `<div class="inside-move-overview-child-header"><p>PATH: <span style="font-size:10px;color:white;">${key.match(/Users\/{1}[a-zA-Z0-9\/\_]+$/)}</span></p></div><p>INHALT:</p>`;
-            taskFile.controlPanel.components[taskFile.index].id = key.match(patz);  
+            taskFile.controlPanel.components[taskFile.index].id = key.match(taskFile.regEx.pattern);  
             taskFile.controlPanel.components[taskFile.index].className = "move-directories";
             if(content[key].length != 0){
                 for(let i=0; i<content[key].length; i++){ 
                     if(content[key][i].match(/^(file|dir)/)[0] == 'file'){
-                        taskFile.controlPanel.components[taskFile.index].innerHTML += `<p class="move-elements" name="file" id="${key.match(patz)[0]}/${content[key][i].match(/[a-zA-Z0-9]+\.*[a-zA-Z]*$/)[0]}" draggable="true"><span class="material-symbols-outlined">article</span>Name: ${content[key][i].match(/[a-zA-Z0-9]+\.*[a-zA-Z]*$/)[0]}</p>`;
+                        taskFile.controlPanel.components[taskFile.index].innerHTML += `<p class="move-elements" name="file" id="${key.match(taskFile.regEx.pattern)[0]}/${content[key][i].match(/[a-zA-Z0-9]+\.*[a-zA-Z]*$/)[0]}" draggable="true"><span class="material-symbols-outlined">article</span>Name: ${content[key][i].match(/[a-zA-Z0-9]+\.*[a-zA-Z]*$/)[0]}</p>`;
                     }else if(content[key][i].match(/^(file|dir)/)[0] == 'dir'){
-                        taskFile.controlPanel.components[taskFile.index].innerHTML += `<p class="move-elements" name="directory" id="${key.match(patz)}/${content[key][i].match(/[a-zA-Z0-9]+\.*[a-zA-Z]*$/)[0]}" draggable="true"><span class="material-symbols-outlined">folder</span>Name: ${content[key][i].match(/[a-zA-Z0-9]+\.*[a-zA-Z]*$/)[0]}</p>`;
+                        taskFile.controlPanel.components[taskFile.index].innerHTML += `<p class="move-elements" name="directory" id="${key.match(taskFile.regEx.pattern)}/${content[key][i].match(/[a-zA-Z0-9]+\.*[a-zA-Z]*$/)[0]}" draggable="true"><span class="material-symbols-outlined">folder</span>Name: ${content[key][i].match(/[a-zA-Z0-9]+\.*[a-zA-Z]*$/)[0]}</p>`;
                     } 
                 }
             }else {
