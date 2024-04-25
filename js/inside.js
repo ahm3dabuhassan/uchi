@@ -6,9 +6,9 @@ let taskFile = {
     y: null,
     x: null,
     controlPanel: {
-        el: document.createElement('div'), // Parent, Target for Childs..
-        child: document.createElement('div'), // Child
-        components:[document.createElement('button'),document.createElement('p'),document.createElement('p'),document.createElement('button'),document.createElement('button'),document.createElement('button'),document.createElement('div')] 
+        el: document.createElement('div'), 
+        child: document.createElement('div'), 
+        components:[document.createElement('button'),document.createElement('p'),document.createElement('p'),document.createElement('button'),document.createElement('button'),document.createElement('button')] 
     },
     fileID: null,
     typeOfTask: 'boot',
@@ -29,7 +29,6 @@ let taskFile = {
         }
     },
     connect: (typeOfTask, fileID, funk=null, headBody=null) => { 
-        console.log(typeOfTask);
         fetch(`http://127.0.0.1:8080/taskFile/${typeOfTask}/${fileID}`, headBody) 
                     .then(response => { 
                         return response.json();
@@ -42,6 +41,7 @@ let taskFile = {
                     })    
     },
     build: (e) => {
+        console.log('Build');
         this.fileID = e.target.getAttribute('id');
         taskFile.controlPanel.el.setAttribute('name', this.fileID);
         for(let i=0; i<this.source.length; i++){
@@ -51,10 +51,11 @@ let taskFile = {
                 }else{
                     taskFile.controlPanel.components[1].innerHTML = `Folder Name: ${this.fileID.match(/[a-zA-Z0-9\_\-]+\.?[a-zA-Z]{2,3}?$/)[0]}`;
                 }
-                taskFile.controlPanel.components[1].setAttribute('style','background-color:#EDEDED;width:90%;padding:2%;border-radius:4px;font-family:helvetica'); 
+                taskFile.controlPanel.components[1].setAttribute('style','background-color:white;width:90%;padding:2%;border-radius:4px;font-family:helvetica'); 
                 taskFile.controlPanel.components[2].innerHTML = 'Task:'    
                 taskFile.controlPanel.components[3].innerHTML = 'Rename';
                 taskFile.controlPanel.components[3].id = 'rename';
+                taskFile.controlPanel.components[3].name = 'rename';
                 taskFile.controlPanel.components[3].value = this.fileID;
                 taskFile.controlPanel.components[4].innerHTML = 'Delete';
                 taskFile.controlPanel.components[4].id = 'delete';
@@ -68,7 +69,25 @@ let taskFile = {
                 taskFile.controlPanel.el.appendChild(taskFile.controlPanel.components[0]);
                 taskFile.controlPanel.components[3].addEventListener('click', taskFile.rename);
                 taskFile.controlPanel.components[4].addEventListener('click', taskFile.delete);
-                taskFile.controlPanel.components[0].addEventListener('click', (e) => { taskFile.typeOfTask = 'boot'; e.target.parentElement.remove()});           
+                taskFile.controlPanel.components[0].addEventListener('click', (e) => { taskFile.typeOfTask = 'boot';
+                console.log(taskFile.index);
+                if(document.getElementById('rename-newValue') != null){
+                    console.log(taskFile.controlPanel.components);
+                    console.log("ER IST DA.");
+                    document.getElementById('rename-newValue').remove();
+                    taskFile.controlPanel.components[taskFile.index].remove();
+                    taskFile.controlPanel.components.splice(taskFile.controlPanel.components.length-2, 2);
+                    e.target.parentElement.remove();
+                    console.log('AFTER');
+                    console.log(taskFile.controlPanel.components);
+                }else{
+                    e.target.parentElement.remove();
+                }
+                console.log('X');
+                console.log(taskFile.controlPanel.components);
+                
+                console.log(taskFile.controlPanel.components);
+                });           
                 for(let i=1; i<taskFile.controlPanel.components.length; i++){
                     taskFile.controlPanel.child.appendChild(taskFile.controlPanel.components[i]);
                 }
@@ -77,39 +96,64 @@ let taskFile = {
                 taskFile.x = taskFile.positionRequest.left;
                 taskFile.controlPanel.el.id = "inside-control-panel";
                 taskFile.controlPanel.el.setAttribute('style',`width:400px;padding-left:1%;padding-right:1.4%;padding-bottom:1%;background-color:blue;border-radius:16px;box-shadow: 5px 5px 2px 1px rgb(60, 60, 60, 0.1);position:absolute;left:${taskFile.x-460}px;top:${taskFile.y}px;`);
-                taskFile.controlPanel.child.setAttribute('style','width:96%;height:100%;padding:3%;background-color:whitesmoke;');
+                taskFile.controlPanel.child.setAttribute('style','width:96%;height:100%;padding:3%;background-color:blue;border-style:dashed solid;border:1px solid whitesmoke;');
                 taskFile.controlPanel.el.appendChild(taskFile.controlPanel.child);
                 document.body.appendChild(taskFile.controlPanel.el);
+                taskFile.index = taskFile.controlPanel.components.length;
             } 
         }
     },
-    move: (e) => {
+    move: (e) => { //.1
         taskFile.typeOfTask = 'move';
-        console.log(e.target.parentElement.parentElement.getAttribute("name"));
         taskFile.index = taskFile.controlPanel.components.length;
         taskFile.controlPanel.components[taskFile.index] = document.createElement('div');
         taskFile.controlPanel.components[taskFile.index].setAttribute("style","width:80%;background-color:blue;border-radius:10px;padding:2%;position:absolute;z-index:100;color:white;left:7%;top:32%;");
         taskFile.controlPanel.components[taskFile.index].innerHTML = "<div id='inside-move-overview'><span class=\"material-symbols-outlined\">home_app_logo</span><p>Übersicht über Folders</p></div>";
-        taskFile.connect(taskFile.typeOfTask,e.target.parentElement.parentElement.getAttribute('name'), (x) => {taskFile.insertData(taskFile.controlPanel.components[taskFile.index],x)});
+        taskFile.connect(taskFile.typeOfTask,e.target.parentElement.parentElement.getAttribute('name'), (x) => {taskFile.insertData(taskFile.controlPanel.components[taskFile.index],x)}); //.2
         document.body.appendChild(taskFile.controlPanel.components[taskFile.index]);
     },
     rename: (e) => {
-        console.log("RENAME");
-        taskFile.typeOfTask = 'rename';
-        /// HIER - BUTTON MIT CONFIRM... 
-        // insertBefore(newNode, referenceNode)
-        taskFile.controlPanel.components[taskFile.index] = document.createElement('input');
-        taskFile.controlPanel.components[taskFile.index].className = "insert-data";
-        taskFile.controlPanel.components[taskFile.index].id = "rename-newValue";
-        taskFile.controlPanel.components[taskFile.index].value = e.target.parentElement.parentElement.getAttribute('name').match(/[a-zA-Z0-9]+\.?[a-zA-Z0-9]{2,3}?$/)[0];
-        e.target.parentElement.appendChild(taskFile.controlPanel.components[taskFile.index]);
-        taskFile.connect(taskFile.typeOfTask,e.target.parentElement.parentElement.getAttribute('name'));
+        if(e.target.name == 'rename'){
+            taskFile.typeOfTask = 'rename';
+            taskFile.controlPanel.components[3].name = 'cancel';
+            taskFile.controlPanel.components[3].innerHTML = 'Cancel';
+            taskFile.controlPanel.components[taskFile.index] = document.createElement('input');
+            taskFile.controlPanel.components[taskFile.index].className = "insert-data";
+            taskFile.controlPanel.components[taskFile.index].id = "rename-newValue";
+            taskFile.controlPanel.components[taskFile.index].value = e.target.parentElement.parentElement.getAttribute('name').match(/[a-zA-Z0-9]+\.?[a-zA-Z0-9]{2,3}?$/)[0];
+            e.target.parentElement.appendChild(taskFile.controlPanel.components[taskFile.index]);
+            taskFile.controlPanel.components[3].setAttribute('style','float:left;');
+            e.target.parentElement.insertBefore(taskFile.controlPanel.components[taskFile.index], taskFile.controlPanel.components[4]);
+            taskFile.index++
+            taskFile.controlPanel.components[taskFile.index] = document.createElement('button');
+            taskFile.controlPanel.components[taskFile.index].innerHTML = 'Confirm';
+            taskFile.controlPanel.components[taskFile.index].id = 'rename-confirm';
+            taskFile.controlPanel.components[taskFile.index].value = this.fileID;
+            taskFile.controlPanel.components[taskFile.index].addEventListener('click', (e)=> {            
+                console.log(e.target.value, taskFile.controlPanel.components[taskFile.index-1].value);
+                taskFile.connect(taskFile.typeOfTask,e.target.getAttribute('value'), (x) => {console.log("RENAME_CONFIRM_GO!");});
+            });
+            e.target.parentElement.insertBefore(taskFile.controlPanel.components[taskFile.index], taskFile.controlPanel.components[4]);
+            taskFile.controlPanel.components[4].setAttribute('style','clear:both;');
+        }else if(e.target.name == 'cancel'){
+            taskFile.controlPanel.components[6].remove();
+            taskFile.controlPanel.components[7].remove();
+            taskFile.controlPanel.components[3].name = 'rename';
+            taskFile.controlPanel.components[3].innerHTML = 'Rename';
+            taskFile.controlPanel.components.splice(taskFile.controlPanel.components.length-2, 2);
+            taskFile.index = taskFile.controlPanel.components.length;
+        }
     },
     delete: (e) => {
         taskFile.typeOfTask = 'delete';
         taskFile.connect(taskFile.typeOfTask,e.target.parentElement.parentElement.getAttribute('name'));
     },
     insertData: (target,content) => {
+        if(document.getElementById('rename-newValue')){
+            document.getElementById('rename-newValue').remove();
+            taskFile.controlPanel.components[3].name = 'rename';
+            taskFile.controlPanel.components[3].innerHTML = 'Rename';
+        }
         taskFile.username = document.cookie.match(/[a-zA-Z0-9]+$/);
         taskFile.regEx.pattern = `${taskFile.username}[a-zA-Z\/]*$`;
         taskFile.regEx.instance = new RegExp(taskFile.regEx.pattern, 'g');
@@ -134,6 +178,17 @@ let taskFile = {
             taskFile.controlPanel.components[taskFile.index].innerHTML += `</div>`;
             target.appendChild(taskFile.controlPanel.components[taskFile.index]);
         }
+        taskFile.controlPanel.components[++taskFile.index] = document.createElement('button');
+        taskFile.controlPanel.components[taskFile.index].innerHTML = 'Cancel';
+        taskFile.controlPanel.components[taskFile.index].id = 'move-elements-button'; 
+        taskFile.controlPanel.components[taskFile.index].addEventListener('click', ()=> {   
+        for(i=6; i<taskFile.controlPanel.components.length; i++){
+            taskFile.controlPanel.components[i].remove();   
+        }
+        taskFile.controlPanel.components.splice(6,taskFile.controlPanel.components.length-1);
+        taskFile.index = taskFile.controlPanel.components.length;
+        }); 
+        target.appendChild(taskFile.controlPanel.components[taskFile.index]);
         let checkElements = document.querySelectorAll('.move-elements');
         for(let i=0; i<checkElements.length; i++){
             checkElements[i].addEventListener('dragstart', taskFile.drag);
