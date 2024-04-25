@@ -16,7 +16,7 @@ userData = {
     :username => nil,
     :user_id => nil,
     :user_root_folder => nil,
-    :allFolders => nil,
+    :allFolders => nil, 
     :responseData => nil
 }
 loop do
@@ -116,12 +116,14 @@ loop do
         status_code = "200 OK"
         puts "TASK-FILE.." 
         puts "AA::: #{target[/(?<=\/{1}taskFile\/{1})(.*)(?=\/{1}directory|\/{1}file)/]}"
-        case[method_token, target[/(?<=\/{1}taskFile\/{1})(.*)(?=\/{1}directory|\/{1}file)/]]
+        case[target[/(?<=\/{1}taskFile\/{1})(.*)(?=\/{1}directory|\/{1}file)/]]
         when ['rename']
             puts "rename!"
-        when ['GET','move']
+            puts target
+        when ['move']
             puts "move!"
             userData[:responseData] = {}
+            # hier username setzen.
             userData[:allFolders][userData[:username]].each {|w|
                Dir.chdir(w)
                allFiles = Dir.glob("*")
@@ -150,10 +152,8 @@ loop do
         end
         body = client.read(headers['Content-Length'].to_i)
         mv_file = JSON.parse(body)
-        Dir.chdir("#{HOME}/#{mv_file["s"][/(?<=^)(.*)(?=\/[a-zA-Z0-9\_\-]+\.*[a-z]{2,3}$)/]}")
-        puts Dir.getwd
-        puts "ROOT: #{userData[:user_root_folder]}"
-        puts mv_file["s"], mv_file["d"]
+        puts "#{HOME}/#{mv_file["s"][/(?<=^)(.*)(?=\/[a-zA-Z0-9\_\-]+\.?[a-z]{2,3}$)/]}"
+        Dir.chdir("#{HOME}/#{mv_file["s"][/(?<=^)(.*)(?=\/[a-zA-Z0-9\_\-]+\.?[a-z]{2,3}$)/]}")
         FileUtils.mv("#{HOME}/#{mv_file["s"]}", "#{HOME}/#{mv_file["d"]}")
     end
     http_response = <<~MSG
