@@ -42,6 +42,7 @@ let taskFile = {
     },
     build: (e) => {
         console.log('Build');
+        console.log(this.source);
         this.fileID = e.target.getAttribute('id');
         taskFile.controlPanel.el.setAttribute('name', this.fileID);
         for(let i=0; i<this.source.length; i++){
@@ -70,23 +71,14 @@ let taskFile = {
                 taskFile.controlPanel.components[3].addEventListener('click', taskFile.rename);
                 taskFile.controlPanel.components[4].addEventListener('click', taskFile.delete);
                 taskFile.controlPanel.components[0].addEventListener('click', (e) => { taskFile.typeOfTask = 'boot';
-                console.log(taskFile.index);
                 if(document.getElementById('rename-newValue') != null){
-                    console.log(taskFile.controlPanel.components);
-                    console.log("ER IST DA.");
                     document.getElementById('rename-newValue').remove();
                     taskFile.controlPanel.components[taskFile.index].remove();
                     taskFile.controlPanel.components.splice(taskFile.controlPanel.components.length-2, 2);
                     e.target.parentElement.remove();
-                    console.log('AFTER');
-                    console.log(taskFile.controlPanel.components);
                 }else{
                     e.target.parentElement.remove();
                 }
-                console.log('X');
-                console.log(taskFile.controlPanel.components);
-                
-                console.log(taskFile.controlPanel.components);
                 });           
                 for(let i=1; i<taskFile.controlPanel.components.length; i++){
                     taskFile.controlPanel.child.appendChild(taskFile.controlPanel.components[i]);
@@ -103,7 +95,7 @@ let taskFile = {
             } 
         }
     },
-    move: (e) => { //.1
+    move: (e) => { 
         taskFile.typeOfTask = 'move';
         taskFile.index = taskFile.controlPanel.components.length;
         taskFile.controlPanel.components[taskFile.index] = document.createElement('div');
@@ -131,7 +123,7 @@ let taskFile = {
             taskFile.controlPanel.components[taskFile.index].value = this.fileID;
             taskFile.controlPanel.components[taskFile.index].addEventListener('click', (e)=> {            
                 console.log(e.target.value, taskFile.controlPanel.components[taskFile.index-1].value);
-                taskFile.connect(taskFile.typeOfTask,e.target.getAttribute('value'), (x) => {console.log("RENAME_CONFIRM_GO!");});
+                taskFile.connect(taskFile.typeOfTask,`${e.target.getAttribute('value')}=${taskFile.controlPanel.components[taskFile.index-1].value}`, (x) => {console.log("RENAME_CONFIRM_GO!");}, );
             });
             e.target.parentElement.insertBefore(taskFile.controlPanel.components[taskFile.index], taskFile.controlPanel.components[4]);
             taskFile.controlPanel.components[4].setAttribute('style','clear:both;');
