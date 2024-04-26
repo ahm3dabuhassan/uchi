@@ -112,18 +112,18 @@ loop do
             Set-Cookie: session_uid=#{userData["Id"]}_#{userData["Username"]};Max-Age=0
             Location: /home
         STR
-    when ['GET', target[/^\/{1}taskFile\/{1}(boot|move|rename|delete)\/{1}(file|directory)\/{1}[a-zA-Z0-9\/\.\-\%\,\:]+/]] # file/macboy/Folders.txt
+    when ['GET', target[/^\/{1}taskFile\/{1}(boot|move|rename|delete)\/{1}(file|directory)\/{1}[a-zA-Z0-9\/\.\-\%\,\=:]+/]] # file/macboy/Folders.txt
         status_code = "200 OK"
         puts "TASK-FILE.." 
         puts "AA::: #{target[/(?<=\/{1}taskFile\/{1})(.*)(?=\/{1}directory|\/{1}file)/]}"
         case[target[/(?<=\/{1}taskFile\/{1})(.*)(?=\/{1}directory|\/{1}file)/]]
         when ['rename']
             puts "rename!"
-            puts target
+            Dir.chdir("#{HOME}/#{userData[:username]}#{target[/(?<=#{userData[:username]})(.*)(?=\/{1}[a-zA-Z\-\_]+\.?[a-zA-Z]{0,3}\={1}[a-zA-Z\-\_]+\.?[a-zA-Z]{0,3}$)/]}")
+            File.rename("#{HOME}/#{userData[:username]}#{target[/(?<=#{userData[:username]})(.*)(?=\=)/]}", target[/(?<=\=)(.*)(?=$)/])   
         when ['move']
             puts "move!"
             userData[:responseData] = {}
-            # hier username setzen.
             userData[:allFolders][userData[:username]].each {|w|
                Dir.chdir(w)
                allFiles = Dir.glob("*")
