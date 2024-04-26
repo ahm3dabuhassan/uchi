@@ -115,7 +115,6 @@ loop do
     when ['GET', target[/^\/{1}taskFile\/{1}(boot|move|rename|delete)\/{1}(file|directory)\/{1}[a-zA-Z0-9\/\.\-\%\,\=:]+/]] # file/macboy/Folders.txt
         status_code = "200 OK"
         puts "TASK-FILE.." 
-        puts "AA::: #{target[/(?<=\/{1}taskFile\/{1})(.*)(?=\/{1}directory|\/{1}file)/]}"
         case[target[/(?<=\/{1}taskFile\/{1})(.*)(?=\/{1}directory|\/{1}file)/]]
         when ['rename']
             puts "rename!"
