@@ -17,7 +17,7 @@ userData = {
     :user_id => nil,
     :user_root_folder => nil,
     :allFolders => nil, 
-    :responseData => nil
+    :responseData => nil 
 }
 loop do
     client = server.accept
@@ -120,6 +120,8 @@ loop do
             puts "rename!"
             Dir.chdir("#{HOME}/#{userData[:username]}#{target[/(?<=#{userData[:username]})(.*)(?=\/{1}[a-zA-Z\-\_]+\.?[a-zA-Z]{0,3}\={1}[a-zA-Z\-\_]+\.?[a-zA-Z]{0,3}$)/]}")
             File.rename("#{HOME}/#{userData[:username]}#{target[/(?<=#{userData[:username]})(.*)(?=\=)/]}", target[/(?<=\=)(.*)(?=$)/])   
+            file_overview = FindAllFolders.new(USER_ROOT_FOLDER)
+            userData[:allFolders] = file_overview.allDirectories
         when ['move']
             puts "move!"
             userData[:responseData] = {}
