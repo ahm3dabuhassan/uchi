@@ -174,7 +174,7 @@ def headInside(titel,nickname)
                 padding:2%;
                 font-weigth:normal;
                 color:#252525;
-                background-color:#EDEDED;
+                background-color:white;
                 border-radius:4px;
                 width:90%
             }
@@ -212,7 +212,7 @@ def headInside(titel,nickname)
                 border-radius:4px;
                 background-color: white;
             }
-            #rename,#delete{
+            #rename,#delete,#move{
                 width: 32%;
                 height:3.4vh;
                 padding:1%;
@@ -230,6 +230,87 @@ def headInside(titel,nickname)
             }
             #delete:hover {
                 background-color: whitesmoke;
+            }
+            #move:hover {
+                background-color: whitesmoke;
+            }
+            #rename-newValue:hover {
+                background-color: whitesmoke;
+            }
+            #inside-move-overview {
+                display:flex;
+                align-items:center;
+                width:40%;
+            }
+            #inside-move-overview > .material-symbols-outlined {
+                font-size:34px;
+            }
+            .move-elements{
+                display:flex;
+                align-items:center;
+                width:92%;
+                border:1px solid whitesmoke;
+                padding:1%;
+                margin: 0 auto;
+                margin-top: 5px;
+            }
+            .inside-move-overview-child-header{
+                border-radius: 5px 5px 0 0;
+                background-color:orange;
+            }
+            .inside-move-overview-child-header > p:nth-of-type(1){
+                margin:0;
+                padding:1.3%;
+            }
+            .empty-folder {
+                width:92%;
+                height: 11vh;
+                display: flex;
+                align-items:center;
+                justify-content:center;
+                margin: 0 auto;
+                border: 1px solid whitesmoke;
+            }
+            #move-elements-button {
+                position:absolute;
+                right:33px;
+                top:32px;
+                heigth:38px;
+                width:70px;
+                border-radius:2.5px;
+                border:2px solid whitesmoke;
+                color:whitesmoke;
+                background-color:blue;
+                font-weight:bold;
+            }
+            #rename-newValue{
+                float:left;
+                border:2px solid green;
+                height:3.4vh;
+                width:35%;
+                margin-left:1%;
+                padding:1%;
+                font-family:futura;
+                font-size:12px;
+                border: 1px solid orange;
+                background-color: white;
+                border-radius: 4px;
+                display: block;
+                margin-bottom:1%;
+                text-align:left;
+            }
+            #rename-confirm{
+                float:left;
+                border:2px solid green;
+                height:3.4vh;
+                padding:1%;
+                margin-left:1%;
+                font-family:futura;
+                font-size:12px;
+                border: 1px solid orange;
+                background-color: white;
+                border-radius: 4px;
+                margin-bottom:1%;
             }
             </style>
             <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
