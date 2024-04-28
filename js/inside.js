@@ -121,9 +121,17 @@ let taskFile = {
             taskFile.controlPanel.components[taskFile.index].innerHTML = 'Confirm';
             taskFile.controlPanel.components[taskFile.index].id = 'rename-confirm';
             taskFile.controlPanel.components[taskFile.index].value = this.fileID;
-            taskFile.controlPanel.components[taskFile.index].addEventListener('click', (e)=> {            
-                console.log(e.target.value, taskFile.controlPanel.components[taskFile.index-1].value);
+            taskFile.controlPanel.components[taskFile.index].addEventListener('click', (e)=> {   
+                let selClass = document.querySelectorAll(".inside-action");
+                for(let i=0; i<selClass.length; i++){
+                    if(this.fileID == selClass[i].id){
+                        document.querySelector(`a[href$="${selClass[i].id.match(/[a-zA-Z0-9\-\_]+\.?[a-zA-Z]{0,3}$/)[0]}"]`).href = document.querySelector(`a[href$="${selClass[i].id.match(/[a-zA-Z0-9\-\_]+\.?[a-zA-Z]{0,3}$/)[0]}"]`).href.replace(selClass[i].id.match(/[a-zA-Z0-9\-\_]+\.?[a-zA-Z]{0,3}$/)[0], taskFile.controlPanel.components[taskFile.index-1].value);
+                        document.querySelector(`[id$="${selClass[i].id.match(/[a-zA-Z0-9\-\_]+\.?[a-zA-Z]{0,3}$/)[0]}"]`).innerHTML = document.querySelector(`[id$="${selClass[i].id.match(/[a-zA-Z0-9\-\_]+\.?[a-zA-Z]{0,3}$/)[0]}"]`).innerHTML.replace(selClass[i].id.match(/[a-zA-Z0-9\-\_]+\.?[a-zA-Z]{0,3}$/)[0], taskFile.controlPanel.components[taskFile.index-1].value);
+                        selClass[i].id = selClass[i].id.replace(selClass[i].id.match(/[a-zA-Z0-9\-\_]+\.?[a-zA-Z]{0,3}$/)[0], taskFile.controlPanel.components[taskFile.index-1].value);
+                    }
+                }         
                 taskFile.connect(taskFile.typeOfTask,`${e.target.getAttribute('value')}=${taskFile.controlPanel.components[taskFile.index-1].value}`, (x) => {console.log("RENAME_CONFIRM_GO!");}, );
+                e.target.value = e.target.value.replace(e.target.value.match(/[a-zA-Z0-9\-\_]+\.?[a-zA-Z]{0,3}$/)[0], taskFile.controlPanel.components[taskFile.index-1].value);
             });
             e.target.parentElement.insertBefore(taskFile.controlPanel.components[taskFile.index], taskFile.controlPanel.components[4]);
             taskFile.controlPanel.components[4].setAttribute('style','clear:both;');
