@@ -48,7 +48,6 @@ let taskFile = {
     },
     build: (e) => {
         console.log('Build');
-        console.log(this.source);
         this.fileID = e.target.getAttribute('id');
         taskFile.controlPanel.el.setAttribute('name', this.fileID);
         for(let i=0; i<this.source.length; i++){
@@ -130,6 +129,7 @@ let taskFile = {
             taskFile.controlPanel.components[taskFile.index].addEventListener('click', (e)=> {   
                 taskFile.updateTable.aTag = document.querySelector(`a[id="${e.target.value}"]`);
                 taskFile.updateTable.aTag.id = taskFile.updateTable.aTag.id.replace(e.target.value.match(taskFile.updateTable.regExPattern)[0], taskFile.controlPanel.components[taskFile.index-1].value);
+                taskFile.updateTable.aTag.href = taskFile.updateTable.aTag.href.replace(e.target.value.match(taskFile.updateTable.regExPattern)[0], taskFile.controlPanel.components[taskFile.index-1].value);
                 taskFile.updateTable.aTag.innerHTML = taskFile.updateTable.aTag.innerHTML.replace(e.target.value.match(taskFile.updateTable.regExPattern), taskFile.controlPanel.components[taskFile.index-1].value);
                 taskFile.updateTable.parentButton = document.querySelector(`div[id="${e.target.value}"]`);
                 taskFile.updateTable.parentButton.id = taskFile.updateTable.parentButton.id.replace(e.target.value.match(taskFile.updateTable.regExPattern)[0], taskFile.controlPanel.components[taskFile.index-1].value);
@@ -233,8 +233,8 @@ class Message {
         startPosition: -300,
         interval: null
     }
-    constructor(ids, type, response){ 
-        this.targetElement = document.querySelector(ids);
+    constructor(id, type, response){ 
+        this.targetElement = document.querySelector(id);
         this.type = type;
         this.content = response;
     }
