@@ -122,6 +122,7 @@ loop do
             File.rename("#{HOME}/#{userData[:username]}#{target[/(?<=#{userData[:username]})(.*)(?=\=)/]}", target[/(?<=\=)(.*)(?=$)/])   
             file_overview = FindAllFolders.new(USER_ROOT_FOLDER)
             userData[:allFolders] = file_overview.allDirectories
+            response_message = "Der Name wurde von #{target[/(?<=#{userData[:username]}\/)(.*)(?=\=)/]} auf #{target[/(?<=\=)(.*)(?=$)/]} verändert".to_json
         when ['move']
             puts "move!"
             userData[:responseData] = {}
