@@ -22,6 +22,12 @@ let taskFile = {
         pattern: null,
         instance: null
     }, 
+    updateTable:{  
+        regExPattern: /[a-zA-Z0-9\-\_]+\.?[a-zA-Z]{0,3}$/,
+        aTag: null, 
+        parentButton: null
+    },
+    message: document.getElementById('inside-message'),
     init: () => {
         this.source = document.querySelectorAll(".inside-action");
         for(let i=0; i<this.source.length; i++){
@@ -122,16 +128,13 @@ let taskFile = {
             taskFile.controlPanel.components[taskFile.index].id = 'rename-confirm';
             taskFile.controlPanel.components[taskFile.index].value = this.fileID;
             taskFile.controlPanel.components[taskFile.index].addEventListener('click', (e)=> {   
-                let selClass = document.querySelectorAll(".inside-action");
-                for(let i=0; i<selClass.length; i++){
-                    if(this.fileID == selClass[i].id){
-                        document.querySelector(`a[href$="${selClass[i].id.match(/[a-zA-Z0-9\-\_]+\.?[a-zA-Z]{0,3}$/)[0]}"]`).href = document.querySelector(`a[href$="${selClass[i].id.match(/[a-zA-Z0-9\-\_]+\.?[a-zA-Z]{0,3}$/)[0]}"]`).href.replace(selClass[i].id.match(/[a-zA-Z0-9\-\_]+\.?[a-zA-Z]{0,3}$/)[0], taskFile.controlPanel.components[taskFile.index-1].value);
-                        document.querySelector(`[id$="${selClass[i].id.match(/[a-zA-Z0-9\-\_]+\.?[a-zA-Z]{0,3}$/)[0]}"]`).innerHTML = document.querySelector(`[id$="${selClass[i].id.match(/[a-zA-Z0-9\-\_]+\.?[a-zA-Z]{0,3}$/)[0]}"]`).innerHTML.replace(selClass[i].id.match(/[a-zA-Z0-9\-\_]+\.?[a-zA-Z]{0,3}$/)[0], taskFile.controlPanel.components[taskFile.index-1].value);
-                        selClass[i].id = selClass[i].id.replace(selClass[i].id.match(/[a-zA-Z0-9\-\_]+\.?[a-zA-Z]{0,3}$/)[0], taskFile.controlPanel.components[taskFile.index-1].value);
-                    }
-                }         
-                taskFile.connect(taskFile.typeOfTask,`${e.target.getAttribute('value')}=${taskFile.controlPanel.components[taskFile.index-1].value}`, (x) => {console.log("RENAME_CONFIRM_GO!");}, );
-                e.target.value = e.target.value.replace(e.target.value.match(/[a-zA-Z0-9\-\_]+\.?[a-zA-Z]{0,3}$/)[0], taskFile.controlPanel.components[taskFile.index-1].value);
+                taskFile.updateTable.aTag = document.querySelector(`a[id="${e.target.value}"]`);
+                taskFile.updateTable.aTag.id = taskFile.updateTable.aTag.id.replace(e.target.value.match(taskFile.updateTable.regExPattern)[0], taskFile.controlPanel.components[taskFile.index-1].value);
+                taskFile.updateTable.aTag.innerHTML = taskFile.updateTable.aTag.innerHTML.replace(e.target.value.match(taskFile.updateTable.regExPattern), taskFile.controlPanel.components[taskFile.index-1].value);
+                taskFile.updateTable.parentButton = document.querySelector(`div[id="${e.target.value}"]`);
+                taskFile.updateTable.parentButton.id = taskFile.updateTable.parentButton.id.replace(e.target.value.match(taskFile.updateTable.regExPattern)[0], taskFile.controlPanel.components[taskFile.index-1].value);
+                taskFile.connect(taskFile.typeOfTask,`${e.target.getAttribute('value')}=${taskFile.controlPanel.components[taskFile.index-1].value}`, (x) => { new Message('#inside-message', 'correct', x).go();});
+                e.target.value = e.target.value.replace(e.target.value.match(taskFile.updateTable.regExPattern)[0], taskFile.controlPanel.components[taskFile.index-1].value);    
             });
             e.target.parentElement.insertBefore(taskFile.controlPanel.components[taskFile.index], taskFile.controlPanel.components[4]);
             taskFile.controlPanel.components[4].setAttribute('style','clear:both;');
@@ -223,4 +226,40 @@ let taskFile = {
         e.preventDefault();
     }
 }
+
+class Message {
+    #motion = {
+        endPosition: 40,
+        startPosition: -300,
+        interval: null
+    }
+    constructor(ids, type, response){ 
+        this.targetElement = document.querySelector(ids);
+        this.type = type;
+        this.content = response;
+    }
+    go(p){
+        if(this.type == 'correct'){
+            this.targetElement.innerHTML = `<span class="material-symbols-outlined" style="color:orange;font-weight:bold;margin-right:3%;">check</span><p>${this.content}</p>`;
+            this.targetElement.setAttribute('style', 'display:flex;align-items:center;width:400px;position:absolute;top:80px;right:-200px;color:yellowgreen;float:right;font-family:futura;border:2px solid blue;padding:1%;border-radius:5px;');
+        }else if(this.type == 'alert'){
+            this.targetElement.innerHTML = this.content;
+            this.targetElement.setAttribute('style', 'color:red;float:right;font-family:futura;border:1px solid red;padding:1%');
+        }
+        this.anim();
+    }
+    anim(){
+        this.#motion.interval = setInterval(() => {
+            if(this.#motion.startPosition <= this.#motion.endPosition){
+                this.#motion.startPosition++
+                this.targetElement.style.right = `${this.#motion.startPosition}px`;
+            }else{
+                clearInterval(this.#motion.interval);
+                setTimeout(() => {this.targetElement.style.right = "-500px";}, 700);
+            }
+
+        }, 8);
+    }
+}
+
 document.body.addEventListener('onload', taskFile.init());
