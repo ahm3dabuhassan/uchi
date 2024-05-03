@@ -208,7 +208,6 @@ let taskFile = {
     drag: (e) => {
         let was = e.target.getAttribute('name');
         e.target.parentElement.children.length < 4 ? taskFile.folderStatus = e.target.parentElement.id : false;
-        console.log(document.querySelector(`div[id="${e.target.parentElement.id}"] > div:nth-of-type(1) > p > span`).innerHTML);
         e.dataTransfer.setData('text', JSON.stringify({id:e.target.id,type:was}));
     },
     drop: (e) => {
@@ -216,28 +215,30 @@ let taskFile = {
         taskFile.typeOfTask = "moved"
         e.preventDefault();
         let data = JSON.parse(e.dataTransfer.getData("text"));
-        console.log(data.type)
-        taskFile.connect(taskFile.typeOfTask, `${data.type}/`, (x) => {console.log(`MOVED:: ${x}`);}, {headers:{
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-        },
-        method: 'POST',
-        body: JSON.stringify({s:data.id,d:e.currentTarget.id})
-    });
-        e.currentTarget.appendChild(document.getElementById(data["id"]));
-        let updateID = document.getElementById(data.id);
-        updateID.id = `${e.currentTarget.id}/${data.id.match(/[a-zA-Z\-\_]+\.?[a-zA-Z0-9]{0,3}$/)}`;
-        if(taskFile.folderStatus != null){
-            taskFile.index = taskFile.index++;
-            taskFile.controlPanel.components[taskFile.index] = document.createElement('p');
-            taskFile.controlPanel.components[taskFile.index].className = "empty-folder";
-            taskFile.controlPanel.components[taskFile.index].innerHTML = '<span class="material-symbols-outlined">folder</span>Empty Folder'; 
-            document.querySelector(`div[id="${taskFile.folderStatus}"]`).appendChild(taskFile.controlPanel.components[taskFile.index]);
-            taskFile.folderStatus = null;
-            console.log("AAAA:::");
-            console.log(taskFile.controlPanel.components);
+        if(e.currentTarget.id != data["id"]){
+            taskFile.connect(taskFile.typeOfTask, `${data.type}/`, (x) => {console.log(`MOVED:: ${x}`);}, {headers:{
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            method: 'POST',
+            body: JSON.stringify({s:data.id,d:e.currentTarget.id})
+        });
+            e.currentTarget.appendChild(document.getElementById(data["id"]));
+            let updateID = document.getElementById(data.id);
+            updateID.id = `${e.currentTarget.id}/${data.id.match(/[a-zA-Z\-\_]+\.?[a-zA-Z0-9]{0,3}$/)}`;
+            if(taskFile.folderStatus != null){
+                taskFile.index = taskFile.index++;
+                taskFile.controlPanel.components[taskFile.index] = document.createElement('p');
+                taskFile.controlPanel.components[taskFile.index].className = "empty-folder";
+                taskFile.controlPanel.components[taskFile.index].innerHTML = '<span class="material-symbols-outlined">folder</span>Empty Folder'; 
+                document.querySelector(`div[id="${taskFile.folderStatus}"]`).appendChild(taskFile.controlPanel.components[taskFile.index]);
+                taskFile.folderStatus = null;
+            }
+            e.currentTarget.children[2].className == 'empty-folder' ?  e.currentTarget.children[2].remove() : false;
+            new Message('#inside-message', 'correct', `Datei/Verzeichnis unter dem Name <span style="font-weight:bold;">${data.id.match(/[a-zA-Z0-9\-\_]+\.?[a-zA-Z0-9]{0,3}$/)}</span> wurde erfolgreich nach <span style="font-weight:bold;">${e.currentTarget.id.match(/[a-zA-Z\-\_0-9]+$/)}</span> verschoben.`).go();
+        }else{
+            new Message('#inside-message', 'alert', `Du kannst dieses Verzeichnis unter dem Name <span style="font-weight:bold;">${data.id.match(/[a-zA-Z0-9\-]+$/)}</span> nicht verschieben.`).go();
         }
-        e.currentTarget.children[2].className == 'empty-folder' ?  e.currentTarget.children[2].remove() : false;
     },
     allowDrop: (e) => {
         e.preventDefault();
@@ -257,11 +258,11 @@ class Message {
     }
     go(p){
         if(this.type == 'correct'){
-            this.targetElement.innerHTML = `<span class="material-symbols-outlined" style="color:orange;font-weight:bold;margin-right:3%;">check</span><p>${this.content}</p>`;
-            this.targetElement.setAttribute('style', 'display:flex;align-items:center;width:400px;position:absolute;top:80px;right:-200px;color:yellowgreen;float:right;font-family:futura;border:2px solid blue;padding:1%;border-radius:5px;');
+            this.targetElement.innerHTML = `<span class="material-symbols-outlined" style="font-weight:bold;margin-right:3%;">check</span><p>${this.content}</p>`;
+            this.targetElement.setAttribute('style', 'display:flex;align-items:center;width:400px;position:absolute;top:80px;right:-200px;color:yellowgreen;float:right;font-family:futura;border:2px solid yellowgreen;padding:1%;border-radius:5px;box-shadow:5px 5px 5px rgba(0,0,0,0.5);');
         }else if(this.type == 'alert'){
-            this.targetElement.innerHTML = this.content;
-            this.targetElement.setAttribute('style', 'color:red;float:right;font-family:futura;border:1px solid red;padding:1%');
+            this.targetElement.innerHTML = `<span class="material-symbols-outlined">warning</span>${this.content}`;
+            this.targetElement.setAttribute('style', 'display:flex;align-items:center;width:400px;position:absolute;top:80px;right:-200px;color:red;float:right;font-family:futura;border:2px solid red;padding:1%;border-radius:5px;box-shadow:5px 5px 5px rgba(0,0,0,0.5);');
         }
         this.anim();
     }
