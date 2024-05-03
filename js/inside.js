@@ -18,12 +18,13 @@ let taskFile = {
     amoutOfChildren: null,
     funk: null,
     username: null, 
+    folderStatus: null,
     regEx:{ 
         pattern: null,
         instance: null
     }, 
     updateTable:{  
-        regExPattern: /[a-zA-Z0-9\-\_]+\.?[a-zA-Z]{0,3}$/,
+        regExPattern: /[a-zA-Z0-9\-\_]+\.?[a-zA-Z0-9]{0,3}$/,
         aTag: null, 
         parentButton: null
     },
@@ -52,8 +53,10 @@ let taskFile = {
         taskFile.controlPanel.el.setAttribute('name', this.fileID);
         for(let i=0; i<this.source.length; i++){
             if(this.source[i].id == this.fileID){
+                console.log(this.fileID, this.source[i].id);
+                console.log(this.fileID.match(/[a-zA-Z0-9\_\-]+\.?[a-zA-Z0-9]{2,3}?$/));
                 if(this.fileID.match(/^[a-zA-Z0-9]+/)[0] == 'file'){
-                    taskFile.controlPanel.components[1].innerHTML = `Filename: ${this.fileID.match(/[a-zA-Z0-9\_\-]+\.?[a-zA-Z]{2,3}?$/)[0]}`;
+                    taskFile.controlPanel.components[1].innerHTML = `Filename: ${this.fileID.match(/[a-zA-Z0-9\_\-]+\.?[a-zA-Z0-9]{2,3}?$/)[0]}`;
                 }else{
                     taskFile.controlPanel.components[1].innerHTML = `Folder Name: ${this.fileID.match(/[a-zA-Z0-9\_\-]+\.?[a-zA-Z]{2,3}?$/)[0]}`;
                 }
@@ -104,7 +107,7 @@ let taskFile = {
         taskFile.typeOfTask = 'move';
         taskFile.index = taskFile.controlPanel.components.length;
         taskFile.controlPanel.components[taskFile.index] = document.createElement('div');
-        taskFile.controlPanel.components[taskFile.index].setAttribute("style","width:80%;background-color:blue;border-radius:10px;padding:2%;position:absolute;z-index:100;color:white;left:7%;top:32%;");
+        taskFile.controlPanel.components[taskFile.index].setAttribute("style","width:80%;background-color:blue;border-radius:10px;padding:2%;position:absolute;z-index:100;color:white;left:7%;top:32%;box-shadow:5px 5px 5px rgba(0,0,0,0.5);");
         taskFile.controlPanel.components[taskFile.index].innerHTML = "<div id='inside-move-overview'><span class=\"material-symbols-outlined\">home_app_logo</span><p>Übersicht über Folders</p></div>";
         taskFile.connect(taskFile.typeOfTask,e.target.parentElement.parentElement.getAttribute('name'), (x) => {taskFile.insertData(taskFile.controlPanel.components[taskFile.index],x)}); //.2
         document.body.appendChild(taskFile.controlPanel.components[taskFile.index]);
@@ -170,7 +173,7 @@ let taskFile = {
             if(content[key].length != 0){
                 for(let i=0; i<content[key].length; i++){ 
                     if(content[key][i].match(/^(file|dir)/)[0] == 'file'){
-                        taskFile.controlPanel.components[taskFile.index].innerHTML += `<p class="move-elements" name="file" id="${key.match(taskFile.regEx.pattern)[0]}/${content[key][i].match(/[a-zA-Z0-9]+\.*[a-zA-Z]*$/)[0]}" draggable="true"><span class="material-symbols-outlined">article</span>Name: ${content[key][i].match(/[a-zA-Z0-9]+\.*[a-zA-Z]*$/)[0]}</p>`;
+                        taskFile.controlPanel.components[taskFile.index].innerHTML += `<p class="move-elements" name="file" id="${key.match(taskFile.regEx.pattern)[0]}/${content[key][i].match(/[a-zA-Z0-9]+\.*[a-zA-Z0-9]*$/)[0]}" draggable="true"><span class="material-symbols-outlined">article</span>Name: ${content[key][i].match(/[a-zA-Z0-9\_]+\.?[a-zA-Z0-9]{0,3}$/)[0]}</p>`;
                     }else if(content[key][i].match(/^(file|dir)/)[0] == 'dir'){
                         taskFile.controlPanel.components[taskFile.index].innerHTML += `<p class="move-elements" name="directory" id="${key.match(taskFile.regEx.pattern)}/${content[key][i].match(/[a-zA-Z0-9]+\.*[a-zA-Z]*$/)[0]}" draggable="true"><span class="material-symbols-outlined">folder</span>Name: ${content[key][i].match(/[a-zA-Z0-9]+\.*[a-zA-Z]*$/)[0]}</p>`;
                     } 
@@ -204,6 +207,8 @@ let taskFile = {
     },
     drag: (e) => {
         let was = e.target.getAttribute('name');
+        e.target.parentElement.children.length < 4 ? taskFile.folderStatus = e.target.parentElement.id : false;
+        console.log(document.querySelector(`div[id="${e.target.parentElement.id}"] > div:nth-of-type(1) > p > span`).innerHTML);
         e.dataTransfer.setData('text', JSON.stringify({id:e.target.id,type:was}));
     },
     drop: (e) => {
@@ -211,6 +216,7 @@ let taskFile = {
         taskFile.typeOfTask = "moved"
         e.preventDefault();
         let data = JSON.parse(e.dataTransfer.getData("text"));
+        console.log(data.type)
         taskFile.connect(taskFile.typeOfTask, `${data.type}/`, (x) => {console.log(`MOVED:: ${x}`);}, {headers:{
             'Accept': 'application/json',
             'Content-Type': 'application/json'
@@ -220,7 +226,18 @@ let taskFile = {
     });
         e.currentTarget.appendChild(document.getElementById(data["id"]));
         let updateID = document.getElementById(data.id);
-        updateID.id = `${e.currentTarget.id}/${data.id.match(/[a-zA-Z\-\_]+\.?[a-zA-Z]{0,3}$/)}`;
+        updateID.id = `${e.currentTarget.id}/${data.id.match(/[a-zA-Z\-\_]+\.?[a-zA-Z0-9]{0,3}$/)}`;
+        if(taskFile.folderStatus != null){
+            taskFile.index = taskFile.index++;
+            taskFile.controlPanel.components[taskFile.index] = document.createElement('p');
+            taskFile.controlPanel.components[taskFile.index].className = "empty-folder";
+            taskFile.controlPanel.components[taskFile.index].innerHTML = '<span class="material-symbols-outlined">folder</span>Empty Folder'; 
+            document.querySelector(`div[id="${taskFile.folderStatus}"]`).appendChild(taskFile.controlPanel.components[taskFile.index]);
+            taskFile.folderStatus = null;
+            console.log("AAAA:::");
+            console.log(taskFile.controlPanel.components);
+        }
+        e.currentTarget.children[2].className == 'empty-folder' ?  e.currentTarget.children[2].remove() : false;
     },
     allowDrop: (e) => {
         e.preventDefault();
