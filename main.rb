@@ -112,9 +112,8 @@ loop do
             Set-Cookie: session_uid=#{userData["Id"]}_#{userData["Username"]};Max-Age=0
             Location: /home
         STR
-    when ['GET', target[/^\/{1}taskFile\/{1}(boot|move|rename|delete)\/{1}(file|directory)\/{1}[a-zA-Z0-9\/\.\-\%\,\=:]+/]] # file/macboy/Folders.txt
+    when ['GET', target[/^\/{1}taskFile\/{1}(boot|move|rename|delete)\/{1}(file|directory)\/{1}[a-zA-Z0-9\/\.\-\%\,\=:]+/]]
         status_code = "200 OK"
-        puts "TASK-FILE.." 
         case[target[/(?<=\/{1}taskFile\/{1})(.*)(?=\/{1}directory|\/{1}file)/]]
         when ['rename']
             puts "rename!"
@@ -139,7 +138,6 @@ loop do
                end
             }    
             }
-            puts userData[:responseData].to_json
             response_message = userData[:responseData].to_json  
         end
     when ['POST', target[/^\/{1}taskFile\/{1}moved\/{1}[a-zA-Z0-9]+\/{1}$/]]
@@ -154,9 +152,23 @@ loop do
         end
         body = client.read(headers['Content-Length'].to_i)
         mv_file = JSON.parse(body)
-        puts "#{HOME}/#{mv_file["s"][/(?<=^)(.*)(?=\/[a-zA-Z0-9\_\-]+\.?[a-z]{2,3}$)/]}"
-        Dir.chdir("#{HOME}/#{mv_file["s"][/(?<=^)(.*)(?=\/[a-zA-Z0-9\_\-]+\.?[a-z]{2,3}$)/]}")
+        Dir.chdir("#{HOME}/#{mv_file["s"][/(?<=^)(.*)(?=\/[a-zA-Z0-9\_\-]+\.?[a-z0-9]{2,3}$)/]}")
         FileUtils.mv("#{HOME}/#{mv_file["s"]}", "#{HOME}/#{mv_file["d"]}")
+        file_overview = FindAllFolders.new(USER_ROOT_FOLDER)
+        userData[:allFolders] = file_overview.allDirectories
+        if headers['Referer'][/(?<=\/inside\/|\/open\-dir\/)(.*)(?=$)/].gsub(/\s/, '') == mv_file["s"][/(.*)(?=\/{1}[a-zA-Z0-9]+\.?[a-zA-Z0-9]{0,3})/] || headers['Referer'][/(?<=\/inside\/|\/open\-dir\/)(.*)(?=$)/].gsub(/\s/, '') == mv_file["d"]
+            userData[:allFolders][userData[:username]].each { |n|
+                if n[/(?<=Users\/)[a-zA-Z\/]+$/] == headers['Referer'][/(?<=\/inside\/|\/open\-dir\/)(.*)(?=$)/].gsub(/\s/, '') 
+                    present = Overview.new(userData[:allFolders], userData[:username], 0)
+                    present.data = userData[:allFolders]
+                    present.update(userData[:allFolders][userData[:username]].index(n), headers['Referer'][/(?<=\/inside\/|\/open\-dir\/)(.*)(?=$)/].gsub(/\s/, ''))
+                    response_message = present.output.to_json
+                end
+            }
+        else 
+            puts "Nope: UPDATE TABLE"
+        end
+       
     end
     http_response = <<~MSG
     HTTP/1.1 #{status_code}
@@ -168,3 +180,4 @@ loop do
     client.puts(http_response)
     client.close
 end
+
