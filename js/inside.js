@@ -18,6 +18,7 @@ let taskFile = {
     amoutOfChildren: null,
     funk: null,
     username: null, 
+    moveIdUpdate: null,
     folderStatus: null,
     regEx:{ 
         pattern: null,
@@ -109,7 +110,8 @@ let taskFile = {
         taskFile.controlPanel.components[taskFile.index] = document.createElement('div');
         taskFile.controlPanel.components[taskFile.index].setAttribute("style","width:80%;background-color:blue;border-radius:10px;padding:2%;position:absolute;z-index:100;color:white;left:7%;top:32%;box-shadow:5px 5px 5px rgba(0,0,0,0.5);");
         taskFile.controlPanel.components[taskFile.index].innerHTML = "<div id='inside-move-overview'><span class=\"material-symbols-outlined\">home_app_logo</span><p>Übersicht über Folders</p></div>";
-        taskFile.connect(taskFile.typeOfTask,e.target.parentElement.parentElement.getAttribute('name'), (x) => {taskFile.insertData(taskFile.controlPanel.components[taskFile.index],x)}); //.2
+        taskFile.moveIdUpdate = e.target.value.match(/(?:directory\/|file\/)(.*)(?=$)/)[1];
+        taskFile.connect(taskFile.typeOfTask,e.target.parentElement.parentElement.getAttribute('name'), (x) => {taskFile.insertData(taskFile.controlPanel.components[taskFile.index], x, taskFile.moveIdUpdate)}); //.2
         document.body.appendChild(taskFile.controlPanel.components[taskFile.index]);
     },
     rename: (e) => {
@@ -154,7 +156,8 @@ let taskFile = {
         taskFile.typeOfTask = 'delete';
         taskFile.connect(taskFile.typeOfTask,e.target.parentElement.parentElement.getAttribute('name'));
     },
-    insertData: (target,content) => {
+    insertData: (target,content,id) => {
+        console.log("INSERT-DATA");
         if(document.getElementById('rename-newValue')){
             document.getElementById('rename-newValue').remove();
             taskFile.controlPanel.components[3].name = 'rename';
@@ -204,6 +207,7 @@ let taskFile = {
             assignEventToDirectories[i].addEventListener('drop', taskFile.drop);
             assignEventToDirectories[i].addEventListener('dragover', taskFile.allowDrop);
         }
+        document.getElementById(id).parentElement.style.backgroundColor = "red";
     },
     drag: (e) => {
         let was = e.target.getAttribute('name');
@@ -215,8 +219,9 @@ let taskFile = {
         taskFile.typeOfTask = "moved"
         e.preventDefault();
         let data = JSON.parse(e.dataTransfer.getData("text"));
+        console.log(e.currentTarget.id,data["id"]);
         if(e.currentTarget.id != data["id"]){
-            taskFile.connect(taskFile.typeOfTask, `${data.type}/`, (x) => {console.log(`MOVED:: ${x}`);}, {headers:{
+            taskFile.connect(taskFile.typeOfTask, `${data.type}/`, (x) => { document.querySelector('#overview').innerHTML = x;}, {headers:{
                 'Accept': 'application/json',
                 'Content-Type': 'application/json'
             },
@@ -236,6 +241,14 @@ let taskFile = {
             }
             e.currentTarget.children[2].className == 'empty-folder' ?  e.currentTarget.children[2].remove() : false;
             new Message('#inside-message', 'correct', `Datei/Verzeichnis unter dem Name <span style="font-weight:bold;">${data.id.match(/[a-zA-Z0-9\-\_]+\.?[a-zA-Z0-9]{0,3}$/)}</span> wurde erfolgreich nach <span style="font-weight:bold;">${e.currentTarget.id.match(/[a-zA-Z\-\_0-9]+$/)}</span> verschoben.`).go();
+            console.log("TABLE_TABLE:");
+            console.log(data["id"].match(/[a-zA-Z0-9\-\_]+\/{1}[a-zA-Z0-9\-\_]+\.?[a-zA-Z0-9]{0,3}$/));
+            let ter = data["id"].match(/[a-zA-Z0-9\-\_]+\/{1}[a-zA-Z0-9\-\_]+\.?[a-zA-Z0-9]{0,3}$/);
+            console.log(`a[id="file/${ter}"]`);
+            let rw = document.querySelector(`a[id="file/${data["id"].match(/[a-zA-Z0-9\-\_]+\/{1}[a-zA-Z0-9\-\_]+\.?[a-zA-Z0-9]{0,3}$/)}"]`).parentElement.parentElement;
+            //rw != null ? rw.style.display = 'none' : false;
+        //    console.log(rw);
+         //   console.log(document.querySelector(`a[id="file/${data["id"].match(/[a-zA-Z0-9\-\_]+\/{1}[a-zA-Z0-9\-\_]+\.?[a-zA-Z0-9]{0,3}$/)}"]`));
         }else{
             new Message('#inside-message', 'alert', `Du kannst dieses Verzeichnis unter dem Name <span style="font-weight:bold;">${data.id.match(/[a-zA-Z0-9\-]+$/)}</span> nicht verschieben.`).go();
         }
