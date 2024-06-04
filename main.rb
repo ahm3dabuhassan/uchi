@@ -3,22 +3,23 @@ require 'uri'
 require 'net/http'
 require 'json'
 require 'fileutils'
+require 'base64'
 require './globalFunctions.rb'
 require './html_templates/template.rb'
 
-
 home = `echo $HOME`
 HOME = "/Users/ahmedabu-hassan/Desktop/uchi/Users"
-puts HOME
 server = TCPServer.new(8080)
 
-userData = {   
+userData = { 
     :username => nil,
     :user_id => nil,
     :user_root_folder => nil,
     :allFolders => nil, 
-    :responseData => nil 
+    :responseData => nil,
+    :history => nil
 }
+result = {}
 loop do
     client = server.accept
     headers = {}
@@ -44,6 +45,7 @@ loop do
         end
         body = client.read(headers['Content-Length'].to_i)
         userData = URI.decode_www_form(body).to_h
+        puts "AA: #{userData}"
         user = VerifyUser.new(userData["username"], userData["password"])
         userData = user.connect()
         if user.verify() == true
@@ -74,13 +76,13 @@ loop do
         else 
             status_code = "200 OK"
             content_type = "text/html; charset=utf-8"
-            Dir.chdir("/Users/ahmedabu-hassan/Desktop/uchi/Users")
+            Dir.chdir(HOME)
             USER_ROOT_FOLDER = "/Users/ahmedabu-hassan/Desktop/uchi/Users"
             file_overview = FindAllFolders.new(USER_ROOT_FOLDER)
             userData[:allFolders] = file_overview.allDirectories
-            present = Overview.new(file_overview.allDirectories, userData["Username"])
             userData[:username] = userData["Username"]
             userData[:user_root_folder] = "#{USER_ROOT_FOLDER}/#{userData["Username"]}"
+            present = Overview.new(file_overview.allDirectories, userData["Username"])
             user_cookie_location = ""
             response_message = headInside("Inside",target[/[a-zA-Z0-9]+$/])
             response_message << present.output
@@ -94,14 +96,15 @@ loop do
             if i[/[a-zA-Z0-9]+$/] == target[/[a-zA-Z0-9]+\.?[a-zA-Z]*$/] && target[/^\/{1}open\-{1}(dir|file)\/{1}/] == "/open-dir/"
                 present = Overview.new(userData[:allFolders], userData[:username], counter)
                 response_message << present.output
-            elsif  target[/^\/{1}open\-{1}file\/{1}/] == "/open-file/" 
-                #content_type = "content-type: image/jpg"
-                saveF =  target[/[a-zA-Z0-9]+\/{1}[a-zA-Z0-9]+\.{1}[a-zA-Z]{2,3}$/]
+            elsif target[/^\/{1}open\-{1}file\/{1}/] == "/open-file/" 
+                saveF =  target[/[a-zA-Z0-9]+\/{1}[a-zA-Z0-9]+\.?[a-zA-Z]{2,3}$/]
                 if i[/[a-zA-Z0-9]+$/] == saveF[/^[a-zA-Z0-9]+/] 
                     Dir.chdir(i)
-                    filez = File.read("#{i}/#{target[/[a-zA-Z0-9]+\.{1}[a-zA-Z]{2,3}$/]}")
+                    filez = File.read("#{i}/#{target[/[a-zA-Z0-9]+\.?[a-zA-Z]{2,3}$/]}")
+                    #bash_command = ` cd /Users/ahmedabu-hassan/Desktop/uchi; echo "BASH_PWD:: ${PWD}"; chmod +x bash_commands.sh;` #`xxd #{target[/[a-zA-Z0-9]+\.{1}[a-zA-Z]{2,3}$/]} | head`
+                    #puts bash_command
                     response_message = headInside("#{i[/[a-zA-Z0-9]+$/]}",userData[:username])
-                    response_message << filez.to_s
+                    response_message << "<img src='data:image/jpg;base64,#{Base64.encode64(filez)}' width='400' height='500'>"
                 end
             end
             counter += 1
@@ -113,6 +116,8 @@ loop do
             Location: /home
         STR
     when ['GET', target[/^\/{1}taskFile\/{1}(boot|move|rename|delete)\/{1}(file|directory)\/{1}[a-zA-Z0-9\/\.\-\%\,\=:]+/]]
+        puts "YES: #{target[/(?<=\/{1}taskFile\/{1})(.*)(?=\/{1}directory|\/{1}file)/]}"
+        saveTypeOfTasks = target[/(?<=\/{1}taskFile\/{1})(.*)(?=\/{1}directory|\/{1}file)/]
         status_code = "200 OK"
         case[target[/(?<=\/{1}taskFile\/{1})(.*)(?=\/{1}directory|\/{1}file)/]]
         when ['rename']
@@ -122,6 +127,7 @@ loop do
             file_overview = FindAllFolders.new(USER_ROOT_FOLDER)
             userData[:allFolders] = file_overview.allDirectories
             response_message = "Der Name wurde von #{target[/(?<=#{userData[:username]}\/)(.*)(?=\=)/]} auf #{target[/(?<=\=)(.*)(?=$)/]} verändert".to_json
+            yml_data = {:"#{saveTypeOfTasks}"=>{:target=>target[/(?<=#{userData[:username]})(.*)(?=\=)/], :s=>target[/(?<=#{userData[:username]}\/)(.*)(?=\=)/], :d=>target[/(?<=\=)(.*)(?=$)/]}}
         when ['move']
             puts "move!"
             userData[:responseData] = {}
@@ -139,7 +145,16 @@ loop do
             }    
             }
             response_message = userData[:responseData].to_json  
+        when ['delete']
+            puts "delete!"
+            puts target
+            yml_data = {:"#{saveTypeOfTasks}"=>{:target=>target[/(?<=\/file\/)[a-zA-Z0-9\/]+\.?[a-zA-Z0-9]+$/], :location=>Dir.getwd}}
         end
+    if File.exist?("#{USER_ROOT_FOLDER}/#{userData[:username]}/history.yml") == false && target[/(?<=\/{1}taskFile\/{1})(.*)(?=\/{1}directory|\/{1}file)/] != 'move'
+        userData[:history] = History.new(userData[:username], userData[:user_root_folder]).init('init', yml_data)
+    elsif File.exist?("#{USER_ROOT_FOLDER}/#{userData[:username]}/history.yml") == true && target[/(?<=\/{1}taskFile\/{1})(.*)(?=\/{1}directory|\/{1}file)/] != 'move'
+        userData[:history] = History.new(userData[:username], userData[:user_root_folder]).init('update', yml_data)
+    end
     when ['POST', target[/^\/{1}taskFile\/{1}moved\/{1}[a-zA-Z0-9]+\/{1}$/]]
         puts "moved!"
         status_code = "200 OK"
@@ -154,6 +169,12 @@ loop do
         mv_file = JSON.parse(body)
         Dir.chdir("#{HOME}/#{mv_file["s"][/(?<=^)(.*)(?=\/[a-zA-Z0-9\_\-]+\.?[a-z0-9]{2,3}$)/]}")
         FileUtils.mv("#{HOME}/#{mv_file["s"]}", "#{HOME}/#{mv_file["d"]}")
+        yml_data = {:"move"=>{:target=>mv_file["s"][/[a-zA-Z0-9]+.?[a-zA-Z0-9]+$/], :s=>"#{mv_file["s"]}", :d=>"#{mv_file["d"]}"}}
+        if File.exist?("#{USER_ROOT_FOLDER}/#{userData[:username]}/history.yml") == false 
+            userData[:history] = History.new(userData[:username], userData[:user_root_folder]).init('init', yml_data)
+        elsif File.exist?("#{USER_ROOT_FOLDER}/#{userData[:username]}/history.yml") == true
+            userData[:history] = History.new(userData[:username], userData[:user_root_folder]).init('update', yml_data)
+        end
         file_overview = FindAllFolders.new(USER_ROOT_FOLDER)
         userData[:allFolders] = file_overview.allDirectories
         if headers['Referer'][/(?<=\/inside\/|\/open\-dir\/)(.*)(?=$)/].gsub(/\s/, '') == mv_file["s"][/(.*)(?=\/{1}[a-zA-Z0-9]+\.?[a-zA-Z0-9]{0,3})/] || headers['Referer'][/(?<=\/inside\/|\/open\-dir\/)(.*)(?=$)/].gsub(/\s/, '') == mv_file["d"]
@@ -165,10 +186,36 @@ loop do
                     response_message = present.output.to_json
                 end
             }
-        else 
-            puts "Nope: UPDATE TABLE"
         end
-       
+    when['GET', target[/\/{1}find\/{1}[a-zA-Z\/\-\.]+/]]
+       status_code = "200 OK"
+       puts "FIND.."
+       input = target[/(?<=\/{1}find\/{1})[a-zA-Z0-9]+$/]
+       userData[:allFolders][userData[:username]].each { |i| 
+            begin   
+               if Dir.chdir(i)
+                    finder_allFiles = Dir.glob("*")
+                    finder_allFiles.each { |f| 
+                        finder_typeOfFile = File.stat("#{Dir.getwd}/#{f}")
+                        if finder_typeOfFile.file? && f[/#{input}/] 
+                            result["f-#{f}"] = "#{i}/#{f}" 
+                        elsif finder_typeOfFile.directory? && i[/(?<=[a-zA-Z]\/)#{input}(?=[a-zA-Z\/]+$)|#{input}$/]
+                            result["d-#{i[/[a-zA-Z0-9]+$/]}"] = i
+                        end
+                    }
+                end
+            rescue 
+                return false
+            end
+       }
+       puts "RESULT:: #{result}"
+       response_message = result.to_json
+       result = {}
+    when['GET', '/history']
+        status_code = "200 OK"
+        puts "HISTORY.."
+        readYML = YAML.load_file("#{userData[:user_root_folder]}/history.yml")
+        response_message = readYML.to_json
     end
     http_response = <<~MSG
     HTTP/1.1 #{status_code}
