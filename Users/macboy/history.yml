@@ -1,0 +1,31 @@
+---
+:tasks:
+- :rename:
+    :target: "/AufgabeZ.txt"
+    :s: AufgabeZ.txt
+    :d: Aufgabe.txt
+    :date: 06/02/2024 at 05:03 PM
+- :move:
+    :target: frank.jpg
+    :s: macboy/frank.jpg
+    :d: macboy/Text/Pictures
+    :date: 06/02/2024 at 05:03 PM
+- :move:
+    :target: frank.jpg
+    :s: macboy/Text/Pictures/frank.jpg
+    :d: macboy/Text/Test
+    :date: 06/02/2024 at 05:27 PM
+- :rename:
+    :target: "/Aufgabe.txt"
+    :s: Aufgabe.txt
+    :d: AufgabeX.txt
+    :date: 06/02/2024 at 05:27 PM
+- :delete:
+    :target: macboy/AufgabeX.txt
+    :location: "/Users/ahmedabu-hassan/Desktop/uchi"
+    :date: 06/02/2024 at 05:36 PM
+- :rename:
+    :target: "/AufgabeX.txt"
+    :s: AufgabeX.txt
+    :d: Aufgabe.txt
+    :date: 06/02/2024 at 05:42 PM
