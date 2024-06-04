@@ -5,7 +5,7 @@ require 'yaml/store'
 
 class VerifyUser 
     DB_Data = {
-        :user => 'root', :password => 'Sh0-3_G4z-3', :host => 'localhost', :dbname => 'kino', :table_name => 'users'
+        :user => 'root', :password => 'airbag2323_23', :host => 'localhost', :dbname => 'kino', :table_name => 'users'
     }
     @@v = {
         :connection => nil, :response => nil, :command => nil, :verify => nil
