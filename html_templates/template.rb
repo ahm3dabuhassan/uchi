@@ -141,8 +141,15 @@ def headInside(titel,nickname)
                 border-radius: 2.5px;
             }
             #working-directory{
+                float:left;
                 display:flex;
                 align-items:baseline; 
+                width: 55%;
+                padding-left: 1%;
+                padding-right: 1%;
+                margin-bottom: 1%;
+                border:1px solid #252525;
+                border-radius: 0 20px 0 20px;
             }
             #working-directory-path{
                 font-size:12px;   
@@ -252,7 +259,7 @@ def headInside(titel,nickname)
                 border:1px solid whitesmoke;
                 padding:1%;
                 margin: 0 auto;
-                margin-top: 5px;
+                margin-bottom: 5px;
             }
             .inside-move-overview-child-header{
                 border-radius: 5px 5px 0 0;
@@ -312,6 +319,81 @@ def headInside(titel,nickname)
                 border-radius: 4px;
                 margin-bottom:1%;
             }
+            #header-finder-parent{
+                float:right;
+                border: 1px solid #252525; 
+                padding: 1%;
+                display: flex; 
+                border-radius: 0 0 20px 20px;
+            }
+            #header-finder-parent > label{
+                margin-right:5px;
+            }
+            .iconFolderCustomColor{
+                color:yellowgreen;
+            }
+            .iconFileCustomColor{
+                color:orange;
+            }
+            #finder-result-header{
+                display:flex;
+                justify-content: space-between;
+            }
+            #finder-result-header > h3{
+                width:50%;
+                padding:1%;
+                margin:0;
+                border:1px solid white;
+                border-radius:5px;
+            }
+            .finder-result-a {
+                text-decoration: none; 
+                color:white; 
+                font-family: futura; 
+            }
+            #history {
+                display:flex;
+                align-items:center;
+                justify-content:center;
+                float:right; 
+                border: 1px solid #252525;
+                border-radius: 0 20px;
+                padding: 10px;
+            }
+            #history-trigger > p {
+                font-size:11px;
+            }
+            #history > span {
+                color:orange;
+                margin-right:1%;
+                font-size:28px;
+            }
+            .history-type-of-task {
+                display:flex;
+                align-items:center;
+                padding: 1%;
+                border:2px solid white;
+                border-radius:5px; 
+            }
+            #history-list {
+                position:absolute; 
+                z-index:100; 
+                right: 7px; 
+                top: 200px;
+                padding:1%;
+                background-color: lightgray; 
+                border-radius:20px 0 20px 20px
+            }
+            #history-list > div > button {
+                width:70px;
+                border:0;
+                border-radius:5px;
+                background-color:darkturquoise;
+                color:white;
+                font-family:futra;
+                letter-spacing: 1px;
+                margin-left:5px;
+            }
             </style>
             <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
             </head>
@@ -319,8 +401,16 @@ def headInside(titel,nickname)
     <header>
         <li>
             <ul><a href="/inside/#{nickname}">Home</a></ul>
+            <ul><a href="#">Upload</a></ul>
             <ul><a href="/out">Logout</a></ul>
         </li>
+        <div id="header-finder-parent">
+            <span class="material-symbols-outlined">
+            search
+            </span>
+            <label for="header-finder-input">Finder</label>
+            <div><input type="text" id="header-finder-input"></div>
+        </div>
     </header>
     <body>
     <h1>Hello, #{nickname}.</h1>
