@@ -35,6 +35,7 @@ let taskFile = {
         for(let i=0; i<this.source.length; i++){
             this.source[i].addEventListener('click', taskFile.build);
         }
+        new Finder().init();
     },
     connect: (typeOfTask, fileID, funk=null, headBody=null) => { 
         fetch(`http://127.0.0.1:8080/taskFile/${typeOfTask}/${fileID}`, headBody) 
@@ -54,8 +55,6 @@ let taskFile = {
         taskFile.controlPanel.el.setAttribute('name', this.fileID);
         for(let i=0; i<this.source.length; i++){
             if(this.source[i].id == this.fileID){
-                console.log(this.fileID, this.source[i].id);
-                console.log(this.fileID.match(/[a-zA-Z0-9\_\-]+\.?[a-zA-Z0-9]{2,3}?$/));
                 if(this.fileID.match(/^[a-zA-Z0-9]+/)[0] == 'file'){
                     taskFile.controlPanel.components[1].innerHTML = `Filename: ${this.fileID.match(/[a-zA-Z0-9\_\-]+\.?[a-zA-Z0-9]{2,3}?$/)[0]}`;
                 }else{
@@ -215,13 +214,17 @@ let taskFile = {
         e.dataTransfer.setData('text', JSON.stringify({id:e.target.id,type:was}));
     },
     drop: (e) => {
-        console.log("DROP..");
         taskFile.typeOfTask = "moved"
         e.preventDefault();
         let data = JSON.parse(e.dataTransfer.getData("text"));
-        console.log(e.currentTarget.id,data["id"]);
         if(e.currentTarget.id != data["id"]){
-            taskFile.connect(taskFile.typeOfTask, `${data.type}/`, (x) => { document.querySelector('#overview').innerHTML = x;}, {headers:{
+            taskFile.connect(taskFile.typeOfTask, `${data.type}/`, (x) => { document.querySelector('#overview').innerHTML = x;
+            this.source = document.querySelectorAll(".inside-action");
+                for(let i=0; i<this.source.length; i++){
+                    this.source[i].addEventListener('click', taskFile.build);
+                }
+                taskFile.typeOfTask = 'boot';
+             }, {headers:{
                 'Accept': 'application/json',
                 'Content-Type': 'application/json'
             },
@@ -241,14 +244,6 @@ let taskFile = {
             }
             e.currentTarget.children[2].className == 'empty-folder' ?  e.currentTarget.children[2].remove() : false;
             new Message('#inside-message', 'correct', `Datei/Verzeichnis unter dem Name <span style="font-weight:bold;">${data.id.match(/[a-zA-Z0-9\-\_]+\.?[a-zA-Z0-9]{0,3}$/)}</span> wurde erfolgreich nach <span style="font-weight:bold;">${e.currentTarget.id.match(/[a-zA-Z\-\_0-9]+$/)}</span> verschoben.`).go();
-            console.log("TABLE_TABLE:");
-            console.log(data["id"].match(/[a-zA-Z0-9\-\_]+\/{1}[a-zA-Z0-9\-\_]+\.?[a-zA-Z0-9]{0,3}$/));
-            let ter = data["id"].match(/[a-zA-Z0-9\-\_]+\/{1}[a-zA-Z0-9\-\_]+\.?[a-zA-Z0-9]{0,3}$/);
-            console.log(`a[id="file/${ter}"]`);
-            let rw = document.querySelector(`a[id="file/${data["id"].match(/[a-zA-Z0-9\-\_]+\/{1}[a-zA-Z0-9\-\_]+\.?[a-zA-Z0-9]{0,3}$/)}"]`).parentElement.parentElement;
-            //rw != null ? rw.style.display = 'none' : false;
-        //    console.log(rw);
-         //   console.log(document.querySelector(`a[id="file/${data["id"].match(/[a-zA-Z0-9\-\_]+\/{1}[a-zA-Z0-9\-\_]+\.?[a-zA-Z0-9]{0,3}$/)}"]`));
         }else{
             new Message('#inside-message', 'alert', `Du kannst dieses Verzeichnis unter dem Name <span style="font-weight:bold;">${data.id.match(/[a-zA-Z0-9\-]+$/)}</span> nicht verschieben.`).go();
         }
@@ -272,10 +267,10 @@ class Message {
     go(p){
         if(this.type == 'correct'){
             this.targetElement.innerHTML = `<span class="material-symbols-outlined" style="font-weight:bold;margin-right:3%;">check</span><p>${this.content}</p>`;
-            this.targetElement.setAttribute('style', 'display:flex;align-items:center;width:400px;position:absolute;top:80px;right:-200px;color:yellowgreen;float:right;font-family:futura;border:2px solid yellowgreen;padding:1%;border-radius:5px;box-shadow:5px 5px 5px rgba(0,0,0,0.5);');
+            this.targetElement.setAttribute('style', 'display:flex;align-items:center;width:400px;position:absolute;top:80px;right:-200px;color:yellowgreen;float:right;font-family:futura;border:2px solid yellowgreen;padding:1%;border-radius:5px;box-shadow:5px 5px 5px rgba(0,0,0,0.5);background-color:white;');
         }else if(this.type == 'alert'){
             this.targetElement.innerHTML = `<span class="material-symbols-outlined">warning</span>${this.content}`;
-            this.targetElement.setAttribute('style', 'display:flex;align-items:center;width:400px;position:absolute;top:80px;right:-200px;color:red;float:right;font-family:futura;border:2px solid red;padding:1%;border-radius:5px;box-shadow:5px 5px 5px rgba(0,0,0,0.5);');
+            this.targetElement.setAttribute('style', 'display:flex;align-items:center;width:400px;position:absolute;top:80px;right:-200px;color:red;float:right;font-family:futura;border:2px solid red;padding:1%;border-radius:5px;box-shadow:5px 5px 5px rgba(0,0,0,0.5);background-color:white;');
         }
         this.anim();
     }
@@ -293,4 +288,130 @@ class Message {
     }
 }
 
+class Finder { 
+       #host =  "http://127.0.0.1:8080/find";
+       #response = null;
+       #trigger = null;
+       #overview = {
+            parent: document.createElement('div'),
+            children: [],
+            counter: 0,
+            button: document.createElement('button'),
+            cleaner: null,
+            header: document.createElement('div')
+       }
+       go(parameter){
+            fetch(`${this.#host}/${parameter}`)
+            .then(response => {
+                return response.json();
+            })
+            .then(response => {
+                this.#response = response;
+            })
+            .catch(err => {
+                console.log(err);
+            })
+       }
+       init(){
+            this.#trigger = document.getElementById('header-finder-input');
+            this.#trigger.addEventListener('keyup', (e) => {
+                if(this.#trigger.value != ''){
+                    this.go(e.target.value);
+                    this.build(e.target.value);
+                }else{
+                    this.#overview['parent'].remove();
+                }
+            });
+       }
+       build(p){
+            this.#overview.cleaner = document.querySelectorAll('.finder-result');
+            if(this.#overview.cleaner.length > 0){
+                for(let i=0; i<this.#overview.cleaner.length; i++){
+                    this.#overview.cleaner[i].remove();
+                }
+            }
+            this.#overview['header'].id = 'finder-result-header';
+            this.#overview['header'].innerHTML = `<h3>Such nach <span style='font-weight:bold;'>${p}:</span></h3>`;
+            this.#overview['button'].innerHTML = 'Cancel';
+            this.#overview['button'].setAttribute('style','width:70px;height:36px;border:0;padding:1%;font-family:futura;font-size:12px;color:black;background-color:white;border-radius:2.5px;color:black;letter-spacing:1px;');
+            this.#overview['header'].appendChild(this.#overview['button']); 
+            this.#overview['parent'].appendChild(this.#overview['header']);
+            for(let key in this.#response){
+                this.#overview['counter']++
+                this.#overview['children'][this.#overview['counter']] = document.createElement('p');
+                this.#overview['children'][this.#overview['counter']].className = 'finder-result';
+                if(key.match(/^[a-z]/)[0] == 'f'){ 
+                console.log(this.#response[key].match(/(?:\/macboy\/)(.*)/)[1]);
+                this.#overview['children'][this.#overview['counter']].innerHTML = `<span class="material-symbols-outlined iconFileCustomColor">text_snippet</span>Name: <a class="finder-result-a" href="/open-file/${document.cookie.match(/[a-zA-Z0-9]+$/)}/${this.#response[key].match(/(?:\/macboy\/)(.*)/)[1]}">${key}</a><br> Path: ${this.#response[key]}`;
+                }else if(key.match(/^[a-z]/)[0] == 'd'){
+                    this.#overview['children'][this.#overview['counter']].innerHTML = `<span class="material-symbols-outlined iconFolderCustomColor">folder_open</span>Name: <a class="finder-result-a" href="/open-dir/${document.cookie.match(/[a-zA-Z0-9]+$/)}/${this.#response[key].match(/(?:\/macboy\/)(.*)/)[1]}">${key.match(/[a-zA-Z0-9]+\.?[a-z0-9]{1,3}$/)[0]}</a><br> Path: ${this.#response[key]}`;
+                }
+                this.#overview['parent'].appendChild(this.#overview['children'][this.#overview['counter']]);
+            } 
+            this.#overview['button'].addEventListener('click', () => {
+                this.#overview['counter'] = 0;
+                this.#overview['children'] = [];
+                this.#overview['parent'].remove();
+                this.#trigger.value = '';
+            }); 
+            this.#overview['parent'].setAttribute('style','width:81%;padding:2%;background-color:#262626;color:white;border-radius:0 17px 17px 0;');
+            document.body.insertBefore(this.#overview['parent'], document.getElementById('working-directory')); 
+            this.#overview['children'] = [];
+            this.#overview['counter'] = 0;
+        }
+}
+
+let history = { 
+    trigger: null,
+    list: { 
+        target: null, 
+        out: '',
+        parent: null,
+        button: document.createElement('button')
+    },
+    data: null,
+    request: () => {
+        console.log('HISTORY-INIT-REQUEST..');
+            fetch("/history")
+            .then(response => {
+                return response.json();
+            })
+            .then(response => {
+                console.log(response)
+                history.data = response;
+                history.build();
+            })
+            .catch(err => {
+                console.log(err);
+            })
+    },
+    build: () => {
+        console.log("history_build...");
+        history.list.target = document.getElementById('history');
+        history.list.parent = document.createElement('div');
+        history.list.button.innerHTML = "X";
+        history.list.parent.appendChild(history.list.button);
+        history.list.button.addEventListener('click', (e) => {console.log("AAAA")});
+        history.list.parent.id = "history-list";
+        for(let key in history.data['tasks']){
+            for(let key2 in history.data['tasks'][key]){
+                history.list.out += `<div id="${key}" style="width:100%;margin-bottom:1%;border:1px solid white;padding:1%;font-size:10px;font-family:futura;"><p class="history-type-of-task"><span class="material-symbols-outlined">task_alt</span>${key2}</p><p style="display:flex;align-items:center;margin-left:5px;"><span class="material-symbols-outlined">target</span> ${history.data['tasks'][key][key2]['target']}</p>`;
+                history.list.out += `<p style="display:flex;align-items:center;margin-left:5px;"><span class="material-symbols-outlined">trending_flat</span>${history.data['tasks'][key][key2]['s']}</p><p style="display:flex;align-items:center;margin-left:5px;"><span class="material-symbols-outlined">stop</span> ${history.data['tasks'][key][key2]['d']}</p>`;
+                history.list.out += `<p style="display:flex;align-items:center;margin-left:5px;"><span class="material-symbols-outlined">today</span>${history.data['tasks'][key][key2]['date']}</p>`;
+                history.list.out += `<button id="${key}">return</button>`;
+                history.list.out += `</div>`;
+            }
+        }
+        history.list.parent.innerHTML += history.list.out;
+        document.body.appendChild(history.list.parent);
+    },
+    init: () => {
+        this.trigger = document.querySelector('#history-trigger > p');
+        this.trigger.addEventListener('click', history.request);
+    }
+}
+
 document.body.addEventListener('onload', taskFile.init());
+history.init();
+
+
