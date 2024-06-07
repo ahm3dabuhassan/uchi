@@ -321,13 +321,27 @@ def headInside(titel,nickname)
             }
             #header-finder-parent{
                 float:right;
+                display: flex;
+                align-items: center;
                 border: 1px solid #252525; 
                 padding: 1%;
                 display: flex; 
+                height: 24px;
                 border-radius: 0 0 20px 20px;
             }
             #header-finder-parent > label{
                 margin-right:5px;
+                font-size: 15px;
+                letter-spacing: 2px;
+                color:#252525;
+            }
+            #header-finder-parent > span{
+                margin-right:5px;
+                padding: 1.3%;
+                border: 3px solid blue; 
+                border-radius: 50%;
+                color:#252525;
+                box-shadow: 2px 2px 3px 1px rgb(60, 60, 60, 0.3);
             }
             .iconFolderCustomColor{
                 color:yellowgreen;
@@ -372,8 +386,10 @@ def headInside(titel,nickname)
                 display:flex;
                 align-items:center;
                 padding: 1%;
-                border:2px solid white;
-                border-radius:5px; 
+                width:94%;
+                margin: 0 auto;
+                border:1px solid white;
+                border-radius:0 0 10px; 
             }
             #history-list {
                 position:absolute; 
@@ -382,17 +398,36 @@ def headInside(titel,nickname)
                 top: 200px;
                 padding:1%;
                 background-color: lightgray; 
-                border-radius:20px 0 20px 20px
+                border-radius:20px 0 20px 20px;
+                box-shadow: -10px 5px 2px 1px rgb(60, 60, 60, 0.1);
+                color: #252525;
             }
             #history-list > div > button {
                 width:70px;
                 border:0;
                 border-radius:5px;
-                background-color:darkturquoise;
+                background-color:blue;
+                font-size: 11px;
                 color:white;
-                font-family:futra;
-                letter-spacing: 1px;
-                margin-left:5px;
+                font-family:futura;
+                letter-spacing: 4px;
+                margin-left:5%;
+                margin-bottom:2%;
+            }
+            #history-list > div > p:nth-of-type(1) > span {
+                color: green;
+                margin-right: 3%;
+                font-weight: bold;
+            }
+            #history-list > div > p:nth-of-type(1) {
+                font-size: 14px;
+                letter-spacing: 0.3px;
+            }
+            #history-list > div > p:nth-of-type(2) > span {
+                color: red;
+            }
+            #history-list > div > p:nth-of-type {
+                color: #252525;
             }
             </style>
             <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
