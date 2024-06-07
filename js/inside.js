@@ -362,17 +362,19 @@ class Finder {
 }
 
 let history = { 
-    trigger: null,
+    trigger: null, 
     list: { 
         target: null, 
         out: '',
         parent: null,
-        button: document.createElement('button')
+        button: document.createElement('button'),
+        returnButtons: null,
     },
     data: null,
-    request: () => {
+    request: (e) => {
         console.log('HISTORY-INIT-REQUEST..');
-            fetch("/history")
+        console.log(e.target.getAttribute('value'));
+            fetch(`/${e.target.getAttribute('value')}`)
             .then(response => {
                 return response.json();
             })
@@ -384,26 +386,32 @@ let history = {
             .catch(err => {
                 console.log(err);
             })
-    },
+    }, 
     build: () => {
         console.log("history_build...");
         history.list.target = document.getElementById('history');
         history.list.parent = document.createElement('div');
         history.list.button.innerHTML = "X";
-        history.list.parent.appendChild(history.list.button);
-        history.list.button.addEventListener('click', (e) => {console.log("AAAA")});
+        history.list.button.id = 'history-button-remove';
+        history.list.button.setAttribute('style', 'width:25px;height:25px;border:0;border-radius:50%;margin-bottom:5px;');
+        history.list.button.addEventListener('click', (e) => {e.target.parentElement.remove();  history.list.out = ''});
         history.list.parent.id = "history-list";
         for(let key in history.data['tasks']){
             for(let key2 in history.data['tasks'][key]){
-                history.list.out += `<div id="${key}" style="width:100%;margin-bottom:1%;border:1px solid white;padding:1%;font-size:10px;font-family:futura;"><p class="history-type-of-task"><span class="material-symbols-outlined">task_alt</span>${key2}</p><p style="display:flex;align-items:center;margin-left:5px;"><span class="material-symbols-outlined">target</span> ${history.data['tasks'][key][key2]['target']}</p>`;
+                history.list.out += `<div id="${key}" style="width:100%;margin-bottom:3%;border:1px solid white;padding:1%;font-size:10px;font-family:futura;"><p class="history-type-of-task"><span class="material-symbols-outlined">task_alt</span>${key2}</p><p style="display:flex;align-items:center;margin-left:5px;"><span class="material-symbols-outlined">target</span> ${history.data['tasks'][key][key2]['target']}</p>`;
                 history.list.out += `<p style="display:flex;align-items:center;margin-left:5px;"><span class="material-symbols-outlined">trending_flat</span>${history.data['tasks'][key][key2]['s']}</p><p style="display:flex;align-items:center;margin-left:5px;"><span class="material-symbols-outlined">stop</span> ${history.data['tasks'][key][key2]['d']}</p>`;
                 history.list.out += `<p style="display:flex;align-items:center;margin-left:5px;"><span class="material-symbols-outlined">today</span>${history.data['tasks'][key][key2]['date']}</p>`;
-                history.list.out += `<button id="${key}">return</button>`;
+                history.list.out += `<button class="history-button-return" id="${key}" value="return-action/${key}">return</button>`;
                 history.list.out += `</div>`;
             }
         }
-        history.list.parent.innerHTML += history.list.out;
+        history.list.parent.innerHTML += history.list.out; 
+        history.list.parent.insertBefore(history.list.button, history.list.parent.children[0]);
         document.body.appendChild(history.list.parent);
+        history.list.returnButtons = document.getElementsByClassName('history-button-return');
+        for(let i=0; i<history.list.returnButtons.length; i++){
+            history.list.returnButtons[i].addEventListener('click', history.request);
+        }
     },
     init: () => {
         this.trigger = document.querySelector('#history-trigger > p');
