@@ -475,6 +475,7 @@ let history = {
         history.list.returnButtons = document.getElementsByClassName('history-button-return');
         for(let i=0; i<history.list.returnButtons.length; i++){
             history.list.returnButtons[i].addEventListener('click', history.request);
+            history.list.returnButtons[i].addEventListener('click', (e) => { e.target.parentElement.remove(); });
         }
     },
     init: () => {
