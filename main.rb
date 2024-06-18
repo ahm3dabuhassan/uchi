@@ -80,6 +80,7 @@ loop do
             USER_ROOT_FOLDER = "/Users/ahmedabu-hassan/Desktop/uchi/Users"
             file_overview = FindAllFolders.new(USER_ROOT_FOLDER)
             userData[:allFolders] = file_overview.allDirectories
+            puts "ALL-FOLDERS:: #{userData[:allFolders]}"
             userData[:username] = userData["Username"]
             userData[:user_root_folder] = "#{USER_ROOT_FOLDER}/#{userData["Username"]}"
             present = Overview.new(file_overview.allDirectories, userData["Username"])
@@ -121,13 +122,13 @@ loop do
         status_code = "200 OK"
         case[target[/(?<=\/{1}taskFile\/{1})(.*)(?=\/{1}directory|\/{1}file)/]]
         when ['rename']
-            puts "rename!"
+            puts "rename!"     
             Dir.chdir("#{HOME}/#{userData[:username]}#{target[/(?<=#{userData[:username]})(.*)(?=\/{1}[a-zA-Z\-\_]+\.?[a-zA-Z]{0,3}\={1}[a-zA-Z\-\_]+\.?[a-zA-Z]{0,3}$)/]}")
             File.rename("#{HOME}/#{userData[:username]}#{target[/(?<=#{userData[:username]})(.*)(?=\=)/]}", target[/(?<=\=)(.*)(?=$)/])   
             file_overview = FindAllFolders.new(USER_ROOT_FOLDER)
             userData[:allFolders] = file_overview.allDirectories
             response_message = "Der Name wurde von #{target[/(?<=#{userData[:username]}\/)(.*)(?=\=)/]} auf #{target[/(?<=\=)(.*)(?=$)/]} verändert".to_json
-            yml_data = {:"#{saveTypeOfTasks}"=>{:target=>target[/(?<=#{userData[:username]})(.*)(?=\=)/], :s=>target[/(?<=#{userData[:username]}\/)(.*)(?=\=)/], :d=>target[/(?<=\=)(.*)(?=$)/]}}
+            yml_data = {:"#{saveTypeOfTasks}"=>{:target=>target[/(?<=#{userData[:username]}\/)(.*)(?=\=)/], :s=>target[/(?<=#{userData[:username]}\/)(.*)(?=\=)/], :d=>target[/(?<=\=)(.*)(?=$)/]}}
         when ['move']
             puts "move!"
             userData[:responseData] = {}
@@ -187,35 +188,41 @@ loop do
                 end
             }
         end
-    when['GET', target[/\/{1}find\/{1}[a-zA-Z\/\-\.]+/]]
+    when['GET', target[/\/{1}find\/{1}[a-zA-Z0-9\/\-\.]+/]]
        status_code = "200 OK"
        puts "FIND.."
-       input = target[/(?<=\/{1}find\/{1})[a-zA-Z0-9]+$/]
+       input = target[/(?<=\/{1}find\/{1})[a-zA-Z0-9\.]+$/]
        userData[:allFolders][userData[:username]].each { |i| 
-            begin   
-               if Dir.chdir(i)
-                    finder_allFiles = Dir.glob("*")
-                    finder_allFiles.each { |f| 
-                        finder_typeOfFile = File.stat("#{Dir.getwd}/#{f}")
-                        if finder_typeOfFile.file? && f[/#{input}/] 
-                            result["f-#{f}"] = "#{i}/#{f}" 
-                        elsif finder_typeOfFile.directory? && i[/(?<=[a-zA-Z]\/)#{input}(?=[a-zA-Z\/]+$)|#{input}$/]
-                            result["d-#{i[/[a-zA-Z0-9]+$/]}"] = i
-                        end
-                    }
-                end
-            rescue 
-                return false
-            end
+       begin   
+        if Dir.chdir(i)
+             finder_allFiles = Dir.glob("*")
+             finder_allFiles.each { |f| 
+                 finder_typeOfFile = File.stat("#{Dir.getwd}/#{f}")
+                 if finder_typeOfFile.file? && f[/#{input}/] 
+                     result["f-#{finder_typeOfFile.size}-#{f}"] = "#{i}/#{f}" 
+                     bash_file_command = `file #{f}`
+                     puts "BASH:: #{bash_file_command}"
+                 elsif finder_typeOfFile.directory? && i[/[a-zA-Z\/0-9]+(#{input}$|#{input}[a-zA-Z\/\.]+)$/]
+                     result["d-#{i[/[a-zA-Z0-9]+$/]}"] = i
+                 end
+             }
+         end
+     rescue 
+         return false
+     end
        }
        puts "RESULT:: #{result}"
        response_message = result.to_json
        result = {}
-    when['GET', '/history']
+    when['GET', '/history'] # '/history' # target[/^\/history\/?(return\-action\/\d+)?/]
         status_code = "200 OK"
         puts "HISTORY.."
         readYML = YAML.load_file("#{userData[:user_root_folder]}/history.yml")
         response_message = readYML.to_json
+    when['GET', target[/^\/history\/?(return\-action\/(rename|move)\={1}\d+)?/]]
+        status_code = "200 OK"
+        puts "HISTORY_RETURN_ACTION"
+        userData[:history] = History.new(userData[:username], userData[:user_root_folder]).returnAction(target.gsub(/(\/history\/return-action\/)([a-z]+)\=(\d+$)/, '\2'), target.gsub(/(\/history\/return-action\/)([a-z]+)\=(\d+$)/, '\3'))
     end
     http_response = <<~MSG
     HTTP/1.1 #{status_code}

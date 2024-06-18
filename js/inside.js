@@ -292,14 +292,32 @@ class Finder {
        #host =  "http://127.0.0.1:8080/find";
        #response = null;
        #trigger = null;
-       #overview = {
+       #overview = { 
             parent: document.createElement('div'),
             children: [],
             counter: 0,
             button: document.createElement('button'),
             cleaner: null,
-            header: document.createElement('div')
-       }
+            header: document.createElement('div'),
+            typeOfFile: document.createElement('div'),
+            typeOfFileChild: [],
+            chosed: null
+       };
+       #selectType = { 
+        counter: 0, 
+        type: [],
+        func: (newType) => {
+                for(let i=0; i<this.#selectType.type.length; i++){
+                    if(newType == this.#selectType.type[i]){
+                        this.#selectType.counter++;
+                    }
+                }
+            if(this.#selectType.counter == 0){
+                this.#selectType.type.push(newType);
+            }
+            this.#selectType.counter = 0;
+        }
+        };
        go(parameter){
             fetch(`${this.#host}/${parameter}`)
             .then(response => {
@@ -331,20 +349,26 @@ class Finder {
                 }
             }
             this.#overview['header'].id = 'finder-result-header';
-            this.#overview['header'].innerHTML = `<h3>Such nach <span style='font-weight:bold;'>${p}:</span></h3>`;
+            this.#overview['header'].innerHTML = `<h3>Suche nach <span style='font-weight:bold;'>${p}:</span></h3>`;
             this.#overview['button'].innerHTML = 'Cancel';
             this.#overview['button'].setAttribute('style','width:70px;height:36px;border:0;padding:1%;font-family:futura;font-size:12px;color:black;background-color:white;border-radius:2.5px;color:black;letter-spacing:1px;');
             this.#overview['header'].appendChild(this.#overview['button']); 
             this.#overview['parent'].appendChild(this.#overview['header']);
+            this.#overview['parent'].appendChild(this.#overview['typeOfFile']);
+            this.#overview['typeOfFile'].setAttribute('style', 'width:115px;float:right;');
+            this.#overview['typeOfFile'].innerHTML = '<p id="finder-filter-header"><span class="material-symbols-outlined">stacks</span>Filter:</p>';
             for(let key in this.#response){
                 this.#overview['counter']++
                 this.#overview['children'][this.#overview['counter']] = document.createElement('p');
                 this.#overview['children'][this.#overview['counter']].className = 'finder-result';
                 if(key.match(/^[a-z]/)[0] == 'f'){ 
-                console.log(this.#response[key].match(/(?:\/macboy\/)(.*)/)[1]);
-                this.#overview['children'][this.#overview['counter']].innerHTML = `<span class="material-symbols-outlined iconFileCustomColor">text_snippet</span>Name: <a class="finder-result-a" href="/open-file/${document.cookie.match(/[a-zA-Z0-9]+$/)}/${this.#response[key].match(/(?:\/macboy\/)(.*)/)[1]}">${key}</a><br> Path: ${this.#response[key]}`;
+                this.#overview['children'][this.#overview['counter']].innerHTML = `<span class="material-symbols-outlined iconFileCustomColor">text_snippet</span>Name: <a class="finder-result-a" href="/open-file/${document.cookie.match(/[a-zA-Z0-9]+$/)}/${this.#response[key].match(/(?:\/macboy\/)(.*)/)[1]}">${key}</a><br> Path: ${this.#response[key].match(/(?:\/uchi\/Users\/)(.*)/)[1]}`;
+                this.#overview['children'][this.#overview['counter']].id = 'file';
+                this.#selectType.func('F');
                 }else if(key.match(/^[a-z]/)[0] == 'd'){
-                    this.#overview['children'][this.#overview['counter']].innerHTML = `<span class="material-symbols-outlined iconFolderCustomColor">folder_open</span>Name: <a class="finder-result-a" href="/open-dir/${document.cookie.match(/[a-zA-Z0-9]+$/)}/${this.#response[key].match(/(?:\/macboy\/)(.*)/)[1]}">${key.match(/[a-zA-Z0-9]+\.?[a-z0-9]{1,3}$/)[0]}</a><br> Path: ${this.#response[key]}`;
+                    this.#selectType.func('D');
+                    this.#overview['children'][this.#overview['counter']].innerHTML = `<span class="material-symbols-outlined iconFolderCustomColor">folder_open</span>Name: <a class="finder-result-a" href="/open-dir/${document.cookie.match(/[a-zA-Z0-9]+$/)}/${this.#response[key].match(/(?:\/macboy\/)(.*)/)[1]}">${key.match(/[a-zA-Z0-9]+\.?[a-z0-9]{1,3}$/)[0]}</a><br> Path: ${this.#response[key].match(/(?:\/uchi\/Users\/)(.*)/)[1]}`;
+                    this.#overview['children'][this.#overview['counter']].id = 'directory';
                 }
                 this.#overview['parent'].appendChild(this.#overview['children'][this.#overview['counter']]);
             } 
@@ -354,10 +378,49 @@ class Finder {
                 this.#overview['parent'].remove();
                 this.#trigger.value = '';
             }); 
-            this.#overview['parent'].setAttribute('style','width:81%;padding:2%;background-color:#262626;color:white;border-radius:0 17px 17px 0;');
+            this.#overview['parent'].setAttribute('style','width:81%;min-height:25vh;padding:2%;background-color:#262626;color:white;border-radius:0 17px 17px 0;');
             document.body.insertBefore(this.#overview['parent'], document.getElementById('working-directory')); 
             this.#overview['children'] = [];
             this.#overview['counter'] = 0;
+            if(this.#overview['typeOfFileChild'].length > 0){
+                for(let i=0; i<this.#overview['typeOfFileChild'].length; i++){
+                   this.#overview['typeOfFileChild'][i].remove();
+                }
+                this.#overview['typeOfFileChild'] = [];
+            }
+            for(let i=0; i<this.#selectType.type.length; i++){ 
+                this.#overview['typeOfFileChild'][i] = document.createElement('div');
+                this.#overview['typeOfFileChild'][i].setAttribute('style', 'width:50px;height:50px;border:1px solid white;border-radius:5px;float:left;margin-left:5px;display:flex;flex-direction:column;align-items:center;');
+                if(this.#selectType.type[i] == 'F'){
+                    this.#overview['typeOfFileChild'][i].innerHTML = `<span class="material-symbols-outlined finderFilterButtonsIcons">text_snippet</span><p class="finder-filter-buttons">${this.#selectType.type[i]}</p>`;
+                    this.#overview['typeOfFileChild'][i].id = 'file';
+
+                }else{
+                     this.#overview['typeOfFileChild'][i].innerHTML = `<span class="material-symbols-outlined finderFilterButtonsIcons">folder_open</span><p class="finder-filter-buttons">${this.#selectType.type[i]}</p>`
+                     this.#overview['typeOfFileChild'][i].id = 'directory';
+                }
+                this.#overview['typeOfFileChild'][i].addEventListener('click', (e) => {
+                    e.target.style.borderColor = 'red';
+                    if(e.target.id != this.#overview['chosed']){
+                        for(let i=0; i<this.#overview['parent'].children.length; i++){
+                            if(this.#overview['parent'].children[i].id != e.target.id && this.#overview['parent'].children[i].className == 'finder-result'){
+                                this.#overview['parent'].children[i].style.display = 'none';
+                            }
+                        } 
+                        this.#overview['chosed'] = e.target.id; 
+                    }else{
+                        e.target.style.borderColor = 'white';
+                        for(let i=0; i<this.#overview['parent'].children.length; i++){
+                            if(this.#overview['parent'].children[i].id != e.target.id && this.#overview['parent'].children[i].className == 'finder-result'){
+                                this.#overview['parent'].children[i].style.display = 'block';
+                            }
+                        }  
+                        this.#overview['chosed'] = null;
+                    }
+                });
+                this.#overview['typeOfFile'].appendChild(this.#overview['typeOfFileChild'][i]);
+            }
+            this.#selectType.type = [];
         }
 }
 
@@ -368,7 +431,7 @@ let history = {
         out: '',
         parent: null,
         button: document.createElement('button'),
-        returnButtons: null,
+        returnButtons: null
     },
     data: null,
     request: (e) => {
@@ -389,6 +452,7 @@ let history = {
     }, 
     build: () => {
         console.log("history_build...");
+        console.log(history.data['tasks']);
         history.list.target = document.getElementById('history');
         history.list.parent = document.createElement('div');
         history.list.button.innerHTML = "X";
@@ -401,7 +465,7 @@ let history = {
                 history.list.out += `<div id="${key}" style="width:100%;margin-bottom:3%;border:1px solid white;padding:1%;font-size:10px;font-family:futura;"><p class="history-type-of-task"><span class="material-symbols-outlined">task_alt</span>${key2}</p><p style="display:flex;align-items:center;margin-left:5px;"><span class="material-symbols-outlined">target</span> ${history.data['tasks'][key][key2]['target']}</p>`;
                 history.list.out += `<p style="display:flex;align-items:center;margin-left:5px;"><span class="material-symbols-outlined">trending_flat</span>${history.data['tasks'][key][key2]['s']}</p><p style="display:flex;align-items:center;margin-left:5px;"><span class="material-symbols-outlined">stop</span> ${history.data['tasks'][key][key2]['d']}</p>`;
                 history.list.out += `<p style="display:flex;align-items:center;margin-left:5px;"><span class="material-symbols-outlined">today</span>${history.data['tasks'][key][key2]['date']}</p>`;
-                history.list.out += `<button class="history-button-return" id="${key}" value="return-action/${key}">return</button>`;
+                history.list.out += `<button class="history-button-return" id="${key}" value="history/return-action/${key2}=${key}">return</button>`;
                 history.list.out += `</div>`;
             }
         }

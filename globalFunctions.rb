@@ -141,7 +141,7 @@ class FindAllFolders
                 <div id="working-directory">
                 <p style="color:orange;"><span class="material-symbols-outlined">
                 folder_data
-                </span>Working Directory:<p id="working-directory-path">#{Dir.getwd}</p></p>
+                </span>Working Directory:<p id="working-directory-path">./#{Dir.getwd[/(?<=\/uchi\/Users\/)[a-zA-Z0-9\/\-]+$/]}</p></p>
                 </div>
                 <div id="history">
                 <span class="material-symbols-outlined">history</span>
@@ -154,7 +154,7 @@ class FindAllFolders
                         <thead>
                             <td class="inside-thead">Name:</td>
                             <td class="inside-thead">Path:</td>
-                            <td class="inside-thead">Size</td>
+                            <td class="inside-thead">Size:</td>
                             <td class="inside-thead">Time:</td>
                             <td class="inside-thead">Task:</td>
                         </thead>
@@ -164,14 +164,14 @@ class FindAllFolders
                 @@folder.each { |f| 
                 @@forPath = "#{@@forPath}"
                 @@stats = File.stat("#{f}")
-                if @@stats.file?
+                if @@stats.file? 
                         @output << "<tr>"
                         @output <<  <<~STR 
                             <td><a class="overview-type-file" id="file#{v[index][/(?<=[a-zA-Z\/]\/{1}Users)(.*)(?=$)/]}/#{f}" href="/open-file#{v[index][/(?<=[a-zA-Z\/]\/{1}Users)(.*)(?=$)/]}/#{f}"><span class="material-symbols-outlined">
                             description
                             </span>#{f}</a></td>
-                            <td><p style="width:90%;">#{@@forPath}/<span style="color:#FF9933">#{f}</span></p></td>
-                            <td>#{@@stats.size} Bit</td>
+                            <td><p style="width:90%;">#{@@forPath[/(?<=\/uchi\/Users\/)[a-zA-Z0-9\/\-\.]+$/]}/<span style="color:#FF9933">#{f}</span></p></td>
+                            <td>#{@@stats.size} Byte</td>
                             <td>#{@@stats.atime}</td>
                             <td><div class="inside-action" id="file#{v[index][/(?<=[a-zA-Z\/]\/{1}Users)(.*)(?=$)/]}/#{f}"><span class="material-symbols-outlined">
                             rebase
@@ -182,8 +182,8 @@ class FindAllFolders
                             <td><a class="overview-type-directory" id="directory#{v[index][/(?<=[a-zA-Z\/]\/{1}Users)(.*)(?=$)/]}/#{f}" href="/open-dir#{v[index][/(?<=[a-zA-Z\/]\/{1}Users)(.*)(?=$)/]}/#{f}"><span class="material-symbols-outlined">
                             folder
                             </span>#{f}</a></td>
-                            <td><p style="width:90%;">#{@@forPath}/<span style="color:#FF9933">#{f}</span></p></td>
-                            <td>#{@@stats.size / 1024} Bit</td>
+                            <td><p style="width:90%;">#{@@forPath[/(?<=\/uchi\/Users\/)[a-zA-Z0-9\/\-\.]+$/]}/<span style="color:#FF9933">#{f}</span></p></td>
+                            <td>#{@@stats.size} Byte</td>
                             <td>#{@@stats.atime.strftime("%m/%d/%Y at %I:%M %p")}</td>
                             <td><div class="inside-action" id="directory#{v[index][/(?<=[a-zA-Z\/]\/{1}Users)(.*)(?=$)/]}/#{f}"><span class="material-symbols-outlined">
                             rebase
@@ -224,7 +224,7 @@ class FindAllFolders
                         description
                         </span>#{f}</a></td>
                         <td><p style="width:90%;">#{@@forPath}/<span style="color:#FF9933">#{f}</span></p></td>
-                        <td>#{@@stats.size} Bit</td>
+                        <td>#{@@stats.size} Byte</td>
                         <td>#{@@stats.atime}</td>
                         <td><div class="inside-action" id="file#{v[index][/(?<=[a-zA-Z\/]\/{1}Users)(.*)(?=$)/]}/#{f}"><span class="material-symbols-outlined">
                         rebase
@@ -236,7 +236,7 @@ class FindAllFolders
                         folder
                         </span>#{f}</a></td>
                         <td><p style="width:90%;">#{@@forPath}/<span style="color:#FF9933">#{f}</span></p></td>
-                        <td>#{@@stats.size / 1024} Bit</td>
+                        <td>#{@@stats.size / 1024} Byte</td>
                         <td>#{@@stats.atime.strftime("%m/%d/%Y at %I:%M %p")}</td>
                         <td><div class="inside-action" id="directory#{v[index][/(?<=[a-zA-Z\/]\/{1}Users)(.*)(?=$)/]}/#{f}"><span class="material-symbols-outlined">
                         rebase
@@ -258,6 +258,8 @@ class History
     @@open_file = nil
     @@date = nil
     @@contentYML
+    @@id = nil
+    @@counter = 0
     def initialize(username, rootDirectory)
         @username, @rootDirectory = username, rootDirectory
     end
@@ -269,7 +271,7 @@ class History
             @@contentYML = "---\n:tasks:\n- :#{data.keys[0]}:\n"
             data[data.keys[0]].each { |key, value|
                 if value != nil
-                    @@contentYML << "  :#{key}: #{value}\n"
+                    @@contentYML << "   :#{key}: #{value}\n"
                 end
             }
             File.open("#{@rootDirectory}/history.yml", 'w') do |content|
@@ -281,7 +283,44 @@ class History
             @@open_file.transaction do 
             @@open_file[:tasks] << data.transform_keys(&:to_sym)
             end
+        end 
+    end
+    def returnAction(nameOfTask, id)
+      @@open_file = YAML.load_file("#{@rootDirectory}/history.yml")
+      if nameOfTask == 'rename'
+        if @@open_file[:tasks][id.to_i][nameOfTask.to_sym][:target][/(.*)(?=\/[a-zA-Z0-9]+\.[a-z0-9]{2,4})/] != ''
+            Dir.chdir("#{@rootDirectory}/#{@@open_file[:tasks][id.to_i][nameOfTask.to_sym][:target][/(.*)(?=\/[a-zA-Z0-9]+\.[a-z0-9]{2,4})/]}")
+            File.rename("#{Dir.getwd}/#{@@open_file[:tasks][id.to_i][nameOfTask.to_sym][:d]}", "#{@@open_file[:tasks][id.to_i][nameOfTask.to_sym][:s][/[a-zA-Z0-9]+\.?[a-z0-9]{2,4}$/]}")
+        else 
+            Dir.chdir(@rootDirectory)
+            File.rename("#{Dir.getwd}/#{@@open_file[:tasks][id.to_i][nameOfTask.to_sym][:d]}", "#{@@open_file[:tasks][id.to_i][nameOfTask.to_sym][:s][/[a-zA-Z0-9]+\.?[a-z0-9]{2,4}$/]}")
         end
+      elsif nameOfTask == 'move'
+        if @@open_file[:tasks][id.to_i][nameOfTask.to_sym][:target][/(.*)(?=\/[a-zA-Z0-9]+\.[a-z0-9]{2,4})/] != ''
+            Dir.chdir("#{@rootDirectory[/(.*)(?=\/{1}[a-zA-Z0-9]+$)/]}/#{@@open_file[:tasks][id.to_i][nameOfTask.to_sym][:d]}")
+            FileUtils.mv("#{Dir.getwd}/#{@@open_file[:tasks][id.to_i][nameOfTask.to_sym][:s][/[a-zA-Z0-9]+\.?[a-z0-9]{2,4}$/]}", "#{@rootDirectory[/(.*)(?=\/{1}[a-zA-Z0-9]+$)/]}/#{@@open_file[:tasks][id.to_i][nameOfTask.to_sym][:s][/(.*)(?=\/#{@@open_file[:tasks][id.to_i][nameOfTask.to_sym][:s][/[a-zA-Z0-9]+\.?[a-z0-9]{2,4}$/]})/]}")
+        else 
+            Dir.chdir(@rootDirectory)
+            FileUtils.mv("#{Dir.getwd}/#{@@open_file[:tasks][id.to_i][nameOfTask.to_sym][:s][/[a-zA-Z0-9]+\.?[a-z0-9]{2,4}$/]}", "#{@@open_file[:tasks][id.to_i][nameOfTask.to_sym][:s][/(.*)(?=\/#{@@open_file[:tasks][id.to_i][nameOfTask.to_sym][:s][/[a-zA-Z0-9]+\.?[a-z0-9]{2,4}$/]})/]}")
+        end
+      end 
+      self.updateYML(id)
+    end
+    def updateYML(id)
+        puts "updateYML: #{id}"
+        puts @@open_file[:tasks][0]
+        @@contentYML = "---\n#{@@open_file.keys.to_s[/(?<=^\[)(.*)(?=\]$)/]}:\n"
+        for i in @@open_file[:tasks]
+            if @@counter != id.to_i
+                @@contentYML << "- #{i.keys.to_s[/(?<=^\[)(.*)(?=\]$)/]}:\n    :#{i[i.keys[0]].keys[0]}: #{i[i.keys[0]][i[i.keys[0]].keys[0]]}\n    :#{i[i.keys[0]].keys[1]}: #{i[i.keys[0]][i[i.keys[0]].keys[1]]}\n    :#{i[i.keys[0]].keys[2]}: #{i[i.keys[0]][i[i.keys[0]].keys[2]]}\n    :#{i[i.keys[0]].keys[3]}: #{i[i.keys[0]][i[i.keys[0]].keys[3]]}\n"
+            end
+            @@counter+=1
+        end
+        @@counter=0
+        File.open("#{@rootDirectory}/history.yml","w") {
+            |content|     
+                content.write(@@contentYML)
+        }
     end
 end
 
