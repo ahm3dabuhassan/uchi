@@ -29,6 +29,12 @@ let taskFile = {
         aTag: null, 
         parentButton: null
     },
+    makeNewDirectory: { 
+        trigger: null, 
+        wDir: null,
+        nameOfDirectory: null,
+        elements: []
+    },
     message: document.getElementById('inside-message'),
     init: () => {
         this.source = document.querySelectorAll(".inside-action");
@@ -36,9 +42,13 @@ let taskFile = {
             this.source[i].addEventListener('click', taskFile.build);
         }
         new Finder().init();
+        taskFile.makeNewDirectory.trigger = document.getElementById('mkdir');
+        taskFile.makeNewDirectory.trigger.addEventListener('click', taskFile.mkdir);
     },
     connect: (typeOfTask, fileID, funk=null, headBody=null) => { 
-        fetch(`http://127.0.0.1:8080/taskFile/${typeOfTask}/${fileID}`, headBody) 
+        let checkRequest = `http://127.0.0.1:8080/taskFile/${typeOfTask}/${fileID}`;
+        console.log(checkRequest);
+        fetch(checkRequest, headBody) 
                     .then(response => { 
                         return response.json();
                     })
@@ -154,6 +164,47 @@ let taskFile = {
     delete: (e) => {
         taskFile.typeOfTask = 'delete';
         taskFile.connect(taskFile.typeOfTask,e.target.parentElement.parentElement.getAttribute('name'));
+    },
+    mkdir: () => {
+       taskFile.typeOfTask = 'mkdir';
+       taskFile.makeNewDirectory.wDir = document.getElementById('working-directory-path').innerHTML.match(/(?:\.\/)(.*)/)[1];
+       taskFile.makeNewDirectory.elements[0] = document.createElement('div');
+       taskFile.makeNewDirectory.elements[0].id = 'mkdir-parent';
+       taskFile.makeNewDirectory.elements[1] = document.createElement('input');
+       taskFile.makeNewDirectory.elements[1].id = 'mkdir-input';
+       taskFile.makeNewDirectory.elements[2] = document.createElement('button'); 
+       taskFile.makeNewDirectory.elements[2].innerHTML = 'Done';
+       taskFile.makeNewDirectory.elements[2].id = 'mkdir-button-done';
+       taskFile.makeNewDirectory.elements[3] = document.createElement('p'); 
+       taskFile.makeNewDirectory.elements[3].innerHTML = '<span class="material-symbols-outlined">build</span>Make New Directory';
+       taskFile.makeNewDirectory.elements[3].id = 'mkdir-parent-header';
+       taskFile.makeNewDirectory.elements[4] = document.createElement('button'); 
+       taskFile.makeNewDirectory.elements[4].innerHTML = 'Cancel';
+       taskFile.makeNewDirectory.elements[4].id = 'mkdir-button-cancel';
+       taskFile.makeNewDirectory.elements[4].addEventListener('click', (e) => {
+            e.target.parentElement.remove();
+            taskFile.makeNewDirectory.elements = [];
+       });
+       taskFile.makeNewDirectory.elements[5] = document.createElement('label');
+       taskFile.makeNewDirectory.elements[5].innerHTML = 'Name:';
+       taskFile.makeNewDirectory.elements[5].htmlFor = 'mkdir-input';
+       taskFile.makeNewDirectory.elements[6] = document.createElement('p');
+       taskFile.makeNewDirectory.elements[6].id = 'mkdir-parent-wd';
+       taskFile.makeNewDirectory.elements[6].innerHTML = `<span class="material-symbols-outlined">folder_data</span>Parent Directory: ${taskFile.makeNewDirectory.wDir}`;
+       taskFile.makeNewDirectory.elements[0].appendChild(taskFile.makeNewDirectory.elements[3]);
+       taskFile.makeNewDirectory.elements[0].appendChild(taskFile.makeNewDirectory.elements[6]);
+       taskFile.makeNewDirectory.elements[0].appendChild(taskFile.makeNewDirectory.elements[5]);
+       taskFile.makeNewDirectory.elements[0].appendChild(taskFile.makeNewDirectory.elements[1]);
+       taskFile.makeNewDirectory.elements[0].appendChild(taskFile.makeNewDirectory.elements[2]);
+       taskFile.makeNewDirectory.elements[0].appendChild(taskFile.makeNewDirectory.elements[4]);
+       document.body.appendChild(taskFile.makeNewDirectory.elements[0]);
+       taskFile.makeNewDirectory.trigger = document.getElementById('mkdir-button-done');
+       taskFile.makeNewDirectory.trigger.addEventListener('click', () => {
+              console.log('MKDIR-DONE..');
+              let catchNameOfDirectory = document.querySelector('#mkdir-input').value;
+              console.log(catchNameOfDirectory);
+              taskFile.connect(taskFile.typeOfTask, `directory/${taskFile.makeNewDirectory.wDir}=${catchNameOfDirectory}`);
+       });
     },
     insertData: (target,content,id) => {
         console.log("INSERT-DATA");
@@ -303,9 +354,10 @@ class Finder {
             typeOfFileChild: [],
             chosed: null
        };
-       #selectType = { 
+       #selectType = {  
         counter: 0, 
         type: [],
+        format: [],
         func: (newType) => {
                 for(let i=0; i<this.#selectType.type.length; i++){
                     if(newType == this.#selectType.type[i]){
@@ -317,7 +369,7 @@ class Finder {
             }
             this.#selectType.counter = 0;
         }
-        };
+        }
        go(parameter){
             fetch(`${this.#host}/${parameter}`)
             .then(response => {
@@ -342,6 +394,7 @@ class Finder {
             });
        }
        build(p){
+            this.#selectType.format = [];
             this.#overview.cleaner = document.querySelectorAll('.finder-result');
             if(this.#overview.cleaner.length > 0){
                 for(let i=0; i<this.#overview.cleaner.length; i++){
@@ -362,8 +415,9 @@ class Finder {
                 this.#overview['children'][this.#overview['counter']] = document.createElement('p');
                 this.#overview['children'][this.#overview['counter']].className = 'finder-result';
                 if(key.match(/^[a-z]/)[0] == 'f'){ 
-                this.#overview['children'][this.#overview['counter']].innerHTML = `<span class="material-symbols-outlined iconFileCustomColor">text_snippet</span>Name: <a class="finder-result-a" href="/open-file/${document.cookie.match(/[a-zA-Z0-9]+$/)}/${this.#response[key].match(/(?:\/macboy\/)(.*)/)[1]}">${key}</a><br> Path: ${this.#response[key].match(/(?:\/uchi\/Users\/)(.*)/)[1]}`;
-                this.#overview['children'][this.#overview['counter']].id = 'file';
+                this.#selectType.format.includes(key.match(/(?:f\-)(.*)/)[1]) == false ? this.#selectType.format.push(key.match(/(?:f\-)(.*)/)[1]) : false;
+                this.#overview['children'][this.#overview['counter']].innerHTML = `<span class="material-symbols-outlined iconFileCustomColor">text_snippet</span>Name: <a class="finder-result-a" href="/open-file/${document.cookie.match(/[a-zA-Z0-9]+$/)}/${this.#response[key].match(/(?:\/macboy\/)(.*)/)[1]}">${key.match(/(?:^f\-[a-zA-Z\s]+\-)(.*)/)[1]}</a><br> Path: ${this.#response[key].match(/(?:\/uchi\/Users\/)(.*)/)[1]}`;
+                this.#overview['children'][this.#overview['counter']].id = `file-${key.match(/(?:f\-)(.*)/)[1]}`;
                 this.#selectType.func('F');
                 }else if(key.match(/^[a-z]/)[0] == 'd'){
                     this.#selectType.func('D');
@@ -371,6 +425,8 @@ class Finder {
                     this.#overview['children'][this.#overview['counter']].id = 'directory';
                 }
                 this.#overview['parent'].appendChild(this.#overview['children'][this.#overview['counter']]);
+                console.log('FINDER-CATCH-FORMATS:::');
+                console.log(this.#selectType.format);
             } 
             this.#overview['button'].addEventListener('click', () => {
                 this.#overview['counter'] = 0;
@@ -390,11 +446,10 @@ class Finder {
             }
             for(let i=0; i<this.#selectType.type.length; i++){ 
                 this.#overview['typeOfFileChild'][i] = document.createElement('div');
-                this.#overview['typeOfFileChild'][i].setAttribute('style', 'width:50px;height:50px;border:1px solid white;border-radius:5px;float:left;margin-left:5px;display:flex;flex-direction:column;align-items:center;');
+                this.#overview['typeOfFileChild'][i].setAttribute('style', 'width:50px;height:50px;border:1px solid white;border-radius:5px;margin-left:5px;display:flex;flex-direction:column;align-items:center;float:left;');
                 if(this.#selectType.type[i] == 'F'){
                     this.#overview['typeOfFileChild'][i].innerHTML = `<span class="material-symbols-outlined finderFilterButtonsIcons">text_snippet</span><p class="finder-filter-buttons">${this.#selectType.type[i]}</p>`;
-                    this.#overview['typeOfFileChild'][i].id = 'file';
-
+                    this.#overview['typeOfFileChild'][i].id = `file`;
                 }else{
                      this.#overview['typeOfFileChild'][i].innerHTML = `<span class="material-symbols-outlined finderFilterButtonsIcons">folder_open</span><p class="finder-filter-buttons">${this.#selectType.type[i]}</p>`
                      this.#overview['typeOfFileChild'][i].id = 'directory';
@@ -403,7 +458,7 @@ class Finder {
                     e.target.style.borderColor = 'red';
                     if(e.target.id != this.#overview['chosed']){
                         for(let i=0; i<this.#overview['parent'].children.length; i++){
-                            if(this.#overview['parent'].children[i].id != e.target.id && this.#overview['parent'].children[i].className == 'finder-result'){
+                            if(this.#overview['parent'].children[i].id.match(/^[a-zA-Z]+/) != e.target.id && this.#overview['parent'].children[i].className == 'finder-result'){
                                 this.#overview['parent'].children[i].style.display = 'none';
                             }
                         } 
@@ -414,8 +469,37 @@ class Finder {
                             if(this.#overview['parent'].children[i].id != e.target.id && this.#overview['parent'].children[i].className == 'finder-result'){
                                 this.#overview['parent'].children[i].style.display = 'block';
                             }
-                        }  
+                        } 
+                        let findTypeOfFilesButtons = document.querySelectorAll('.finder-filter-format'); 
+                        if(findTypeOfFilesButtons.length > 0){
+                            for(let c=0; c<=findTypeOfFilesButtons.length; c++){
+                                findTypeOfFilesButtons[c].remove();
+                            }
+                        }
                         this.#overview['chosed'] = null;
+                    }
+                    if(this.#selectType.format.length > 0 && document.querySelectorAll('.finder-filter-format').length == 0){
+                        let formatParent = document.createElement('p');
+                        for(let i=0; i<this.#selectType.format.length; i++){
+                            let formatChild = document.createElement('p');
+                            formatChild.innerHTML = this.#selectType.format[i];
+                            formatChild.value = this.#selectType.format[i];
+                            formatChild.className = 'finder-filter-format';
+                            formatParent.appendChild(formatChild);
+                        }
+                        this.#overview['typeOfFile'].appendChild(formatParent);
+                        let assignEventTargets = document.querySelectorAll('.finder-filter-format');
+                        for(let i=0; i<assignEventTargets.length; i++){
+                            assignEventTargets[i].addEventListener('click', (e) => {
+                                e.target.style.border = '1px solid red';
+                                let testSelector = document.querySelector(`.finder-result#file-${e.target.innerHTML}`);
+                                let allFindResult = document.querySelectorAll(`.finder-result`);
+                                for(let i=0; i<allFindResult.length; i++){
+                                    allFindResult[i].id != `file-${e.target.innerHTML}` ? allFindResult[i].style.display = 'none' : false
+                                }
+                                console.log(testSelector);
+                            });
+                        }
                     }
                 });
                 this.#overview['typeOfFile'].appendChild(this.#overview['typeOfFileChild'][i]);
@@ -457,9 +541,10 @@ let history = {
         history.list.parent = document.createElement('div');
         history.list.button.innerHTML = "X";
         history.list.button.id = 'history-button-remove';
-        history.list.button.setAttribute('style', 'width:25px;height:25px;border:0;border-radius:50%;margin-bottom:5px;');
+        history.list.button.setAttribute('style', 'float:left;width:25px;height:25px;border:0;border-radius:50%;margin-bottom:5px;margin-right:6px;');
         history.list.button.addEventListener('click', (e) => {e.target.parentElement.remove();  history.list.out = ''});
         history.list.parent.id = "history-list";
+        history.list.out += '<p id="history-header">History <span style="color:blue;font-weight:bold;">:.</span></p>'
         for(let key in history.data['tasks']){
             for(let key2 in history.data['tasks'][key]){
                 history.list.out += `<div id="${key}" style="width:100%;margin-bottom:3%;border:1px solid white;padding:1%;font-size:10px;font-family:futura;"><p class="history-type-of-task"><span class="material-symbols-outlined">task_alt</span>${key2}</p><p style="display:flex;align-items:center;margin-left:5px;"><span class="material-symbols-outlined">target</span> ${history.data['tasks'][key][key2]['target']}</p>`;

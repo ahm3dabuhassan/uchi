@@ -116,8 +116,7 @@ loop do
             Set-Cookie: session_uid=#{userData["Id"]}_#{userData["Username"]};Max-Age=0
             Location: /home
         STR
-    when ['GET', target[/^\/{1}taskFile\/{1}(boot|move|rename|delete)\/{1}(file|directory)\/{1}[a-zA-Z0-9\/\.\-\%\,\=:]+/]]
-        puts "YES: #{target[/(?<=\/{1}taskFile\/{1})(.*)(?=\/{1}directory|\/{1}file)/]}"
+    when ['GET', target[/^\/{1}taskFile\/{1}(boot|move|rename|delete|mkdir)\/{1}(file|directory)\/{1}[a-zA-Z0-9\/\.\-\%\,\=:]+/]]
         saveTypeOfTasks = target[/(?<=\/{1}taskFile\/{1})(.*)(?=\/{1}directory|\/{1}file)/]
         status_code = "200 OK"
         case[target[/(?<=\/{1}taskFile\/{1})(.*)(?=\/{1}directory|\/{1}file)/]]
@@ -150,12 +149,25 @@ loop do
             puts "delete!"
             puts target
             yml_data = {:"#{saveTypeOfTasks}"=>{:target=>target[/(?<=\/file\/)[a-zA-Z0-9\/]+\.?[a-zA-Z0-9]+$/], :location=>Dir.getwd}}
+        when ['mkdir']
+            puts "mkdir.."
+            Dir.chdir("#{USER_ROOT_FOLDER}/#{target[/(?<=\/directory\/)(.*)(?=\=)/]}")
+            Dir.mkdir("#{target[/[a-zA-Z0-9\_\-]+$/]}")
+            yml_data = {:"#{saveTypeOfTasks}"=>{:target=>target[/[a-zA-Z0-9\_\-]+$/], :location=>target[/(?<=\/directory\/)(.*)(?=\=)/]}}
+            puts yml_data
+            while true do 
+                line = client.readline
+                break if line == "\r\n"
+                header_name, value = line.split(": ")  
+                headers[header_name] = value          
+            end
+            puts "MKDIR_REFERER:: #{headers['Referer']}"
         end
-    if File.exist?("#{USER_ROOT_FOLDER}/#{userData[:username]}/history.yml") == false && target[/(?<=\/{1}taskFile\/{1})(.*)(?=\/{1}directory|\/{1}file)/] != 'move'
+        if File.exist?("#{USER_ROOT_FOLDER}/#{userData[:username]}/history.yml") == false && target[/(?<=\/{1}taskFile\/{1})(.*)(?=\/{1}directory|\/{1}file)/] != 'move'
         userData[:history] = History.new(userData[:username], userData[:user_root_folder]).init('init', yml_data)
-    elsif File.exist?("#{USER_ROOT_FOLDER}/#{userData[:username]}/history.yml") == true && target[/(?<=\/{1}taskFile\/{1})(.*)(?=\/{1}directory|\/{1}file)/] != 'move'
+        elsif File.exist?("#{USER_ROOT_FOLDER}/#{userData[:username]}/history.yml") == true && target[/(?<=\/{1}taskFile\/{1})(.*)(?=\/{1}directory|\/{1}file)/] != 'move'
         userData[:history] = History.new(userData[:username], userData[:user_root_folder]).init('update', yml_data)
-    end
+        end
     when ['POST', target[/^\/{1}taskFile\/{1}moved\/{1}[a-zA-Z0-9]+\/{1}$/]]
         puts "moved!"
         status_code = "200 OK"
@@ -199,9 +211,8 @@ loop do
              finder_allFiles.each { |f| 
                  finder_typeOfFile = File.stat("#{Dir.getwd}/#{f}")
                  if finder_typeOfFile.file? && f[/#{input}/] 
-                     result["f-#{finder_typeOfFile.size}-#{f}"] = "#{i}/#{f}" 
-                     bash_file_command = `file #{f}`
-                     puts "BASH:: #{bash_file_command}"
+                     bash_file_command = `file #{f} | cut -d" " -f 2`
+                     result["f-#{bash_file_command}-#{f}"] = "#{i}/#{f}" 
                  elsif finder_typeOfFile.directory? && i[/[a-zA-Z\/0-9]+(#{input}$|#{input}[a-zA-Z\/\.]+)$/]
                      result["d-#{i[/[a-zA-Z0-9]+$/]}"] = i
                  end
@@ -214,14 +225,13 @@ loop do
        puts "RESULT:: #{result}"
        response_message = result.to_json
        result = {}
-    when['GET', '/history'] # '/history' # target[/^\/history\/?(return\-action\/\d+)?/]
+    when['GET', '/history']
         status_code = "200 OK"
         puts "HISTORY.."
         readYML = YAML.load_file("#{userData[:user_root_folder]}/history.yml")
         response_message = readYML.to_json
     when['GET', target[/^\/history\/?(return\-action\/(rename|move)\={1}\d+)?/]]
         status_code = "200 OK"
-        puts "HISTORY_RETURN_ACTION"
         userData[:history] = History.new(userData[:username], userData[:user_root_folder]).returnAction(target.gsub(/(\/history\/return-action\/)([a-z]+)\=(\d+$)/, '\2'), target.gsub(/(\/history\/return-action\/)([a-z]+)\=(\d+$)/, '\3'))
     end
     http_response = <<~MSG

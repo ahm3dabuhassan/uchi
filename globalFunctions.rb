@@ -143,6 +143,10 @@ class FindAllFolders
                 folder_data
                 </span>Working Directory:<p id="working-directory-path">./#{Dir.getwd[/(?<=\/uchi\/Users\/)[a-zA-Z0-9\/\-]+$/]}</p></p>
                 </div>
+                <div id="mkdir">
+                    <span class="material-symbols-outlined">add</span>
+                    <span class="material-symbols-outlined">folder</span>
+                </div>
                 <div id="history">
                 <span class="material-symbols-outlined">history</span>
                 <div id="history-trigger">
@@ -251,6 +255,7 @@ class FindAllFolders
     end
     attr :output; true
     attr :data;
+    attr :folder
     attr_writer :data
  end
 
