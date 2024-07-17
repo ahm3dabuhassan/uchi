@@ -203,6 +203,7 @@ class FindAllFolders
     end
 
     def update(index, directory=nil) 
+        puts "VIEW_UPDATE:::"
         @data.each { |k, v| 
         if k == @user  
             Dir.chdir("#{v[index]}")
@@ -342,3 +343,29 @@ end
     return out
  end
 
+ class BuildProject
+    DATABASE = {
+        :user => 'root', :password => 'Sh0-3_G4z-3', :host => 'localhost',:db_name => 'kino'
+    }
+    @@sql_request = {
+        :con => nil, :res => nil, :com => nil
+    }
+    def initialize(table)
+        @table = table
+        @response = []
+    end
+
+    def connect()
+        begin
+            @@sql_request[:con] = Mysql.connect("mysql://#{DATABASE[:user]}:#{DATABASE[:password]}@#{DATABASE[:host]}/#{DATABASE[:db_name]}")
+            @@sql_request[:com] = "SELECT Username, Firstname, Lastname, Email FROM #{@table}"
+            @@sql_request[:res] = @@sql_request[:con].query(@@sql_request[:com])
+            @response = @@sql_request[:res].to_a() 
+            return  @response 
+        rescue Mysql::Error => e
+            puts e.errno
+            puts e.error
+        end
+    end
+
+ end

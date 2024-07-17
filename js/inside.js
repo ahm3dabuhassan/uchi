@@ -47,7 +47,6 @@ let taskFile = {
     },
     connect: (typeOfTask, fileID, funk=null, headBody=null) => { 
         let checkRequest = `http://127.0.0.1:8080/taskFile/${typeOfTask}/${fileID}`;
-        console.log(checkRequest);
         fetch(checkRequest, headBody) 
                     .then(response => { 
                         return response.json();
@@ -60,7 +59,6 @@ let taskFile = {
                     })    
     },
     build: (e) => {
-        console.log('Build');
         this.fileID = e.target.getAttribute('id');
         taskFile.controlPanel.el.setAttribute('name', this.fileID);
         for(let i=0; i<this.source.length; i++){
@@ -68,7 +66,7 @@ let taskFile = {
                 if(this.fileID.match(/^[a-zA-Z0-9]+/)[0] == 'file'){
                     taskFile.controlPanel.components[1].innerHTML = `Filename: ${this.fileID.match(/[a-zA-Z0-9\_\-]+\.?[a-zA-Z0-9]{2,3}?$/)[0]}`;
                 }else{
-                    taskFile.controlPanel.components[1].innerHTML = `Folder Name: ${this.fileID.match(/[a-zA-Z0-9\_\-]+\.?[a-zA-Z]{2,3}?$/)[0]}`;
+                    taskFile.controlPanel.components[1].innerHTML = `Folder Name: ${this.fileID.match(/[a-zA-Z0-9\_\-]+$/)[0]}`;
                 }
                 taskFile.controlPanel.components[1].setAttribute('style','background-color:white;width:90%;padding:2%;border-radius:4px;font-family:helvetica'); 
                 taskFile.controlPanel.components[2].innerHTML = 'Task:'    
@@ -88,7 +86,7 @@ let taskFile = {
                 taskFile.controlPanel.el.appendChild(taskFile.controlPanel.components[0]);
                 taskFile.controlPanel.components[3].addEventListener('click', taskFile.rename);
                 taskFile.controlPanel.components[4].addEventListener('click', taskFile.delete);
-                taskFile.controlPanel.components[0].addEventListener('click', (e) => { taskFile.typeOfTask = 'boot';
+                taskFile.controlPanel.components[0].addEventListener('click', (e) => { taskFile.typeOfTask = 'boot';  
                 if(document.getElementById('rename-newValue') != null){
                     document.getElementById('rename-newValue').remove();
                     taskFile.controlPanel.components[taskFile.index].remove();
@@ -199,15 +197,20 @@ let taskFile = {
        taskFile.makeNewDirectory.elements[0].appendChild(taskFile.makeNewDirectory.elements[4]);
        document.body.appendChild(taskFile.makeNewDirectory.elements[0]);
        taskFile.makeNewDirectory.trigger = document.getElementById('mkdir-button-done');
-       taskFile.makeNewDirectory.trigger.addEventListener('click', () => {
-              console.log('MKDIR-DONE..');
+       taskFile.makeNewDirectory.trigger.addEventListener('click', (e) => {
               let catchNameOfDirectory = document.querySelector('#mkdir-input').value;
-              console.log(catchNameOfDirectory);
-              taskFile.connect(taskFile.typeOfTask, `directory/${taskFile.makeNewDirectory.wDir}=${catchNameOfDirectory}`);
+              taskFile.connect(taskFile.typeOfTask, `directory/${taskFile.makeNewDirectory.wDir}=${catchNameOfDirectory}`, (x) => { 
+               document.querySelector('#overview').innerHTML = x;
+               this.source = document.querySelectorAll(".inside-action");
+                    for(let i=0; i<this.source.length; i++){
+                        this.source[i].addEventListener('click', taskFile.build);
+                    }
+                    taskFile.typeOfTask = 'boot';
+                });
+                e.target.parentElement.remove();
        });
     },
     insertData: (target,content,id) => {
-        console.log("INSERT-DATA");
         if(document.getElementById('rename-newValue')){
             document.getElementById('rename-newValue').remove();
             taskFile.controlPanel.components[3].name = 'rename';
@@ -216,6 +219,7 @@ let taskFile = {
         taskFile.username = document.cookie.match(/[a-zA-Z0-9]+$/);
         taskFile.regEx.pattern = `${taskFile.username}[a-zA-Z\/]*$`;
         taskFile.regEx.instance = new RegExp(taskFile.regEx.pattern, 'g');
+        console.log(content);
         for(let key in content){
             taskFile.index++;
             taskFile.controlPanel.components[taskFile.index] = document.createElement('div');
@@ -223,15 +227,27 @@ let taskFile = {
             taskFile.controlPanel.components[taskFile.index].innerHTML = `<div class="inside-move-overview-child-header"><p>PATH: <span style="font-size:10px;color:white;">${key.match(/Users\/{1}[a-zA-Z0-9\/\_]+$/)}</span></p></div><p>INHALT:</p>`;
             taskFile.controlPanel.components[taskFile.index].id = key.match(taskFile.regEx.pattern);  
             taskFile.controlPanel.components[taskFile.index].className = "move-directories";
-            if(content[key].length != 0){
-                for(let i=0; i<content[key].length; i++){ 
+            console.log('CONTENT_MOVE_FOLDER');
+            console.log(content[key]);
+            let bedingung = null;
+            if(content[key].length > 5){
+                console.log('Es soll Button eingebaut werden..');
+                // let bedingung = i < 5
+            }else if(content[key].length > 0 && content[key].length < 5){
+                console.log('Er soll nicht eingebaut werden..');
+                 // let bedingung = i < 5
+            }else{
+                console.log('Der Folder ist leer..');
+            }
+            if(content[key].length > 0){ 
+                for(let i=0; i<content[key].length; i++){
                     if(content[key][i].match(/^(file|dir)/)[0] == 'file'){
                         taskFile.controlPanel.components[taskFile.index].innerHTML += `<p class="move-elements" name="file" id="${key.match(taskFile.regEx.pattern)[0]}/${content[key][i].match(/[a-zA-Z0-9]+\.*[a-zA-Z0-9]*$/)[0]}" draggable="true"><span class="material-symbols-outlined">article</span>Name: ${content[key][i].match(/[a-zA-Z0-9\_]+\.?[a-zA-Z0-9]{0,3}$/)[0]}</p>`;
                     }else if(content[key][i].match(/^(file|dir)/)[0] == 'dir'){
                         taskFile.controlPanel.components[taskFile.index].innerHTML += `<p class="move-elements" name="directory" id="${key.match(taskFile.regEx.pattern)}/${content[key][i].match(/[a-zA-Z0-9]+\.*[a-zA-Z]*$/)[0]}" draggable="true"><span class="material-symbols-outlined">folder</span>Name: ${content[key][i].match(/[a-zA-Z0-9]+\.*[a-zA-Z]*$/)[0]}</p>`;
-                    } 
+                    }  
                 }
-            }else {
+            }else{
                 taskFile.controlPanel.components[taskFile.index].innerHTML += `<p class="empty-folder"><span class="material-symbols-outlined">folder</span>Empty Folder</p>`;
             }
             taskFile.controlPanel.components[taskFile.index].innerHTML += `</div>`;
@@ -343,6 +359,7 @@ class Finder {
        #host =  "http://127.0.0.1:8080/find";
        #response = null;
        #trigger = null;
+       #func = null;
        #overview = { 
             parent: document.createElement('div'),
             children: [],
@@ -352,12 +369,18 @@ class Finder {
             header: document.createElement('div'),
             typeOfFile: document.createElement('div'),
             typeOfFileChild: [],
-            chosed: null
+            chosed: null,
        };
-       #selectType = {  
+       #selectType = {   
         counter: 0, 
         type: [],
         format: [],
+        selectedButton: null,
+        chosed: null,
+        fileFormatChosed: null,
+        formats: [], 
+        elementsOfFormatsParent: null, 
+        elementsOfFormatsChild: null,
         func: (newType) => {
                 for(let i=0; i<this.#selectType.type.length; i++){
                     if(newType == this.#selectType.type[i]){
@@ -369,14 +392,59 @@ class Finder {
             }
             this.#selectType.counter = 0;
         }
-        }
-       go(parameter){
+        };
+       #requestFolderContent = { 
+            element: null,
+            dataOutput: null,
+            data: null,
+            target:null,
+            status: true,
+            counter:0,
+            elements:{},
+            event: (id) => { 
+                console.log('AAA:');
+                console.log(this.#requestFolderContent.elements);
+                this.#requestFolderContent.counter = 0;
+                if(!this.#requestFolderContent.elements[id]){
+                    this.#requestFolderContent.elements[id] = []; 
+                    this.#requestFolderContent.target.setAttribute('style', 'display:block;width:46%;height:fit-content;padding:1.2%;border:1.3px solid aqua;');
+                    for(let key in this.#requestFolderContent.data){
+                        if(key != 'id'){
+                        this.#requestFolderContent.elements[id][this.#requestFolderContent.counter] = document.createElement('p');      
+                        if(key.match(/[d-f]/)[0] == 'd'){
+                            this.#requestFolderContent.elements[id][this.#requestFolderContent.counter].innerHTML = '<span class="material-symbols-outlined folderContentListIcon" id="folderContentListIcon">folder</span>';      
+                        }else if (key.match(/[d-f]/)[0] == 'f'){
+                            this.#requestFolderContent.elements[id][this.#requestFolderContent.counter].innerHTML = '<span class="material-symbols-outlined" id="folderContentListIcon">description</span>';
+                        }else {
+                            this.#requestFolderContent.elements[id][this.#requestFolderContent.counter].innerHTML = '<span class="material-symbols-outlined">error</span>';
+                            this.#requestFolderContent.elements[id][this.#requestFolderContent.counter].style.color = 'red';
+                        }
+                        this.#requestFolderContent.elements[id][this.#requestFolderContent.counter].innerHTML += `${this.#requestFolderContent.data[key]}`;
+                        this.#requestFolderContent.elements[id][this.#requestFolderContent.counter].className = 'folder-content-list';
+                        this.#requestFolderContent.target.appendChild(this.#requestFolderContent.elements[id][this.#requestFolderContent.counter]);
+                        this.#requestFolderContent.counter++;
+                    }
+                    }
+                    this.#requestFolderContent.counter.status = false;
+                }else if(this.#requestFolderContent.elements[id]){
+                    for(let i=0; i<this.#requestFolderContent.elements[id].length; i++){
+                        this.#requestFolderContent.elements[id][i].remove();
+                    }  
+                    delete this.#requestFolderContent.elements[id]; 
+                    this.#requestFolderContent.target.children[0].innerHTML = 'keyboard_arrow_down';
+                    this.#requestFolderContent.target.children[1].innerHTML = 'Show Content';
+                    this.#requestFolderContent.target.setAttribute('style', 'width:18%;height:3vh;font-size:8px;background-color:black;border-radius:5px;display:flex;justify-content:center;margin-left:30px;');
+                }
+            }
+       }
+       go(parameter,func=null){
             fetch(`${this.#host}/${parameter}`)
             .then(response => {
                 return response.json();
             })
             .then(response => {
                 this.#response = response;
+                this.#func = func(response);
             })
             .catch(err => {
                 console.log(err);
@@ -386,15 +454,19 @@ class Finder {
             this.#trigger = document.getElementById('header-finder-input');
             this.#trigger.addEventListener('keyup', (e) => {
                 if(this.#trigger.value != ''){
-                    this.go(e.target.value);
+                    this.go(e.target.value, (x) => {console.log(x);});
                     this.build(e.target.value);
                 }else{
                     this.#overview['parent'].remove();
+                    this.#selectType.elementsOfFormatsParent = null;
                 }
+                this.#requestFolderContent.elements = {};
             });
        }
        build(p){
+            console.log("A_BUILD_FINDER:.");
             this.#selectType.format = [];
+            this.#overview['children'] = [];
             this.#overview.cleaner = document.querySelectorAll('.finder-result');
             if(this.#overview.cleaner.length > 0){
                 for(let i=0; i<this.#overview.cleaner.length; i++){
@@ -408,35 +480,58 @@ class Finder {
             this.#overview['header'].appendChild(this.#overview['button']); 
             this.#overview['parent'].appendChild(this.#overview['header']);
             this.#overview['parent'].appendChild(this.#overview['typeOfFile']);
+            this.#overview['typeOfFile'].id = 'finder-filter-parent';
             this.#overview['typeOfFile'].setAttribute('style', 'width:115px;float:right;');
             this.#overview['typeOfFile'].innerHTML = '<p id="finder-filter-header"><span class="material-symbols-outlined">stacks</span>Filter:</p>';
             for(let key in this.#response){
                 this.#overview['counter']++
-                this.#overview['children'][this.#overview['counter']] = document.createElement('p');
+                this.#overview['children'][this.#overview['counter']] = document.createElement('div');
                 this.#overview['children'][this.#overview['counter']].className = 'finder-result';
                 if(key.match(/^[a-z]/)[0] == 'f'){ 
                 this.#selectType.format.includes(key.match(/(?:f\-)(.*)/)[1]) == false ? this.#selectType.format.push(key.match(/(?:f\-)(.*)/)[1]) : false;
-                this.#overview['children'][this.#overview['counter']].innerHTML = `<span class="material-symbols-outlined iconFileCustomColor">text_snippet</span>Name: <a class="finder-result-a" href="/open-file/${document.cookie.match(/[a-zA-Z0-9]+$/)}/${this.#response[key].match(/(?:\/macboy\/)(.*)/)[1]}">${key.match(/(?:^f\-[a-zA-Z\s]+\-)(.*)/)[1]}</a><br> Path: ${this.#response[key].match(/(?:\/uchi\/Users\/)(.*)/)[1]}`;
+                this.#overview['children'][this.#overview['counter']].innerHTML = `<span class="material-symbols-outlined iconFileCustomColor">text_snippet</span>Name: <a class="finder-result-a" href="/open-file/${document.cookie.match(/[a-zA-Z0-9]+$/)}/${this.#response[key].match(/(?:\/macboy\/)(.*)/)[1]}">${key.match(/(?:^f\-[a-zA-Z\s]+\-)(.*)$/)[1]}</a><br><p>Path: <span style='font-size:12px;'>${this.#response[key].match(/(?:\/uchi\/Users\/)(.*)/)[1]}</span></p>`;
                 this.#overview['children'][this.#overview['counter']].id = `file-${key.match(/(?:f\-)(.*)/)[1]}`;
                 this.#selectType.func('F');
                 }else if(key.match(/^[a-z]/)[0] == 'd'){
                     this.#selectType.func('D');
-                    this.#overview['children'][this.#overview['counter']].innerHTML = `<span class="material-symbols-outlined iconFolderCustomColor">folder_open</span>Name: <a class="finder-result-a" href="/open-dir/${document.cookie.match(/[a-zA-Z0-9]+$/)}/${this.#response[key].match(/(?:\/macboy\/)(.*)/)[1]}">${key.match(/[a-zA-Z0-9]+\.?[a-z0-9]{1,3}$/)[0]}</a><br> Path: ${this.#response[key].match(/(?:\/uchi\/Users\/)(.*)/)[1]}`;
+                    this.#overview['children'][this.#overview['counter']].innerHTML = `<span class="material-symbols-outlined iconFolderCustomColor">folder_open</span>Name: <a class="finder-result-a" href="/open-dir/${document.cookie.match(/[a-zA-Z0-9]+$/)}/${this.#response[key].match(/(?:\/macboy\/)(.*)/)[1]}">${key.match(/[a-zA-Z0-9]+\.?[a-z0-9]{1,3}$/)[0]}</a><p>Path: <span style='font-size:12px;'>${this.#response[key].match(/(?:\/uchi\/Users\/)(.*)/)[1]}</p>`;
                     this.#overview['children'][this.#overview['counter']].id = 'directory';
+                    this.#requestFolderContent.element = document.createElement('div');
+                    this.#requestFolderContent.element.className = 'finder-result-showContent';
+                    this.#requestFolderContent.element.id = `${this.#response[key].match(/(?:\/uchi\/Users\/)(.*)$/)[1]}`;
+                    this.#requestFolderContent.element.innerHTML = '<span class="material-symbols-outlined" id="show-content-icon">keyboard_arrow_down</span><p class="finder-result-showContent-header">Show Content</p>';
+                    this.#requestFolderContent.element.addEventListener('click', (e) => {
+                        if(!this.#requestFolderContent.elements[e.target.parentElement.id]){
+                            this.go(`folder-content=${e.target.parentElement.id}`, (x) => {
+                                this.#requestFolderContent.target = document.getElementById(e.target.parentElement.id);
+                                this.#requestFolderContent.target.children[0].innerHTML = 'close';
+                                this.#requestFolderContent.target.children[1].innerHTML = 'Hide Content';
+                                this.#requestFolderContent.target.children[1].setAttribute('style', 'height:2vh;margin:0;padding:1%;');
+                                this.#requestFolderContent.data = x;
+                                this.#requestFolderContent.event(e.target.parentElement.id);
+                            });
+                          
+                        }else{
+                            this.#requestFolderContent.target = document.getElementById(e.target.parentElement.id);
+                            this.#requestFolderContent.event(e.target.parentElement.id);
+                            this.#requestFolderContent.target.children[1].setAttribute('style', 'display:flex;align-items:center;font-size:11px;background-color:#252525;');
+                        }
+                    });
+                    this.#overview['children'][this.#overview['counter']].appendChild(this.#requestFolderContent.element);
                 }
                 this.#overview['parent'].appendChild(this.#overview['children'][this.#overview['counter']]);
-                console.log('FINDER-CATCH-FORMATS:::');
-                console.log(this.#selectType.format);
             } 
             this.#overview['button'].addEventListener('click', () => {
                 this.#overview['counter'] = 0;
                 this.#overview['children'] = [];
                 this.#overview['parent'].remove();
                 this.#trigger.value = '';
+                this.#selectType.elementsOfFormatsParent.remove();
+                this.#selectType.elementsOfFormatsParent = null;
+                this.#requestFolderContent.elements = {};
             }); 
             this.#overview['parent'].setAttribute('style','width:81%;min-height:25vh;padding:2%;background-color:#262626;color:white;border-radius:0 17px 17px 0;');
             document.body.insertBefore(this.#overview['parent'], document.getElementById('working-directory')); 
-            this.#overview['children'] = [];
             this.#overview['counter'] = 0;
             if(this.#overview['typeOfFileChild'].length > 0){
                 for(let i=0; i<this.#overview['typeOfFileChild'].length; i++){
@@ -448,63 +543,65 @@ class Finder {
                 this.#overview['typeOfFileChild'][i] = document.createElement('div');
                 this.#overview['typeOfFileChild'][i].setAttribute('style', 'width:50px;height:50px;border:1px solid white;border-radius:5px;margin-left:5px;display:flex;flex-direction:column;align-items:center;float:left;');
                 if(this.#selectType.type[i] == 'F'){
-                    this.#overview['typeOfFileChild'][i].innerHTML = `<span class="material-symbols-outlined finderFilterButtonsIcons">text_snippet</span><p class="finder-filter-buttons">${this.#selectType.type[i]}</p>`;
+                    this.#overview['typeOfFileChild'][i].innerHTML = `<span id='file' class="material-symbols-outlined finderFilterButtonsIcons">text_snippet</span>${this.#selectType.type[i]}`;
                     this.#overview['typeOfFileChild'][i].id = `file`;
                 }else{
-                     this.#overview['typeOfFileChild'][i].innerHTML = `<span class="material-symbols-outlined finderFilterButtonsIcons">folder_open</span><p class="finder-filter-buttons">${this.#selectType.type[i]}</p>`
-                     this.#overview['typeOfFileChild'][i].id = 'directory';
+                    this.#overview['typeOfFileChild'][i].innerHTML = `<span id='directory' class="material-symbols-outlined finderFilterButtonsIcons">folder_open</span>${this.#selectType.type[i]}`;
+                    this.#overview['typeOfFileChild'][i].id = 'directory';
                 }
                 this.#overview['typeOfFileChild'][i].addEventListener('click', (e) => {
-                    e.target.style.borderColor = 'red';
-                    if(e.target.id != this.#overview['chosed']){
-                        for(let i=0; i<this.#overview['parent'].children.length; i++){
-                            if(this.#overview['parent'].children[i].id.match(/^[a-zA-Z]+/) != e.target.id && this.#overview['parent'].children[i].className == 'finder-result'){
-                                this.#overview['parent'].children[i].style.display = 'none';
-                            }
-                        } 
-                        this.#overview['chosed'] = e.target.id; 
-                    }else{
-                        e.target.style.borderColor = 'white';
-                        for(let i=0; i<this.#overview['parent'].children.length; i++){
-                            if(this.#overview['parent'].children[i].id != e.target.id && this.#overview['parent'].children[i].className == 'finder-result'){
-                                this.#overview['parent'].children[i].style.display = 'block';
-                            }
-                        } 
-                        let findTypeOfFilesButtons = document.querySelectorAll('.finder-filter-format'); 
-                        if(findTypeOfFilesButtons.length > 0){
-                            for(let c=0; c<=findTypeOfFilesButtons.length; c++){
-                                findTypeOfFilesButtons[c].remove();
-                            }
+                this.#selectType.selectedButton = document.getElementById(e.target.id.match(/(file|directory)/)[0]);
+                if(this.#selectType.chosed == null){
+                    this.#selectType.chosed = e.target.id.match(/(file|directory)/)[0];
+                    for(let i=1; i<this.#overview['children'].length; i++){
+                        this.#overview['children'][i].id.match(/(file|directory)/)[0] != this.#selectType.chosed ? this.#overview['children'][i].style.display = 'none' : false
+                        if(this.#selectType.chosed == 'file' && this.#overview['children'][i].id.match(/(file|directory)/)[0] == 'file'){
+                            this.#selectType.formats.includes(this.#overview['children'][i].id.match(/[a-zA-Z0-9]+$/)[0]) == false ? this.#selectType.formats.push(this.#overview['children'][i].id.match(/[a-zA-Z0-9]+$/)[0]) : false
                         }
-                        this.#overview['chosed'] = null;
                     }
-                    if(this.#selectType.format.length > 0 && document.querySelectorAll('.finder-filter-format').length == 0){
-                        let formatParent = document.createElement('p');
-                        for(let i=0; i<this.#selectType.format.length; i++){
-                            let formatChild = document.createElement('p');
-                            formatChild.innerHTML = this.#selectType.format[i];
-                            formatChild.value = this.#selectType.format[i];
-                            formatChild.className = 'finder-filter-format';
-                            formatParent.appendChild(formatChild);
-                        }
-                        this.#overview['typeOfFile'].appendChild(formatParent);
-                        let assignEventTargets = document.querySelectorAll('.finder-filter-format');
-                        for(let i=0; i<assignEventTargets.length; i++){
-                            assignEventTargets[i].addEventListener('click', (e) => {
-                                e.target.style.border = '1px solid red';
-                                let testSelector = document.querySelector(`.finder-result#file-${e.target.innerHTML}`);
-                                let allFindResult = document.querySelectorAll(`.finder-result`);
-                                for(let i=0; i<allFindResult.length; i++){
-                                    allFindResult[i].id != `file-${e.target.innerHTML}` ? allFindResult[i].style.display = 'none' : false
+                    if(this.#selectType.chosed == 'file' && this.#selectType.formats.length > 0 && this.#selectType.elementsOfFormatsParent == null){
+                        this.#selectType.elementsOfFormatsParent = document.createElement('div');
+                        this.#selectType.elementsOfFormatsParent.id = 'finder-typOfFormat-Parent';
+                        for(let i=0; i<this.#selectType.formats.length; i++){
+                            this.#selectType.elementsOfFormatsChild = document.createElement('div');
+                            this.#selectType.elementsOfFormatsChild.innerHTML = `<p id='${this.#selectType.formats[i]}'>${this.#selectType.formats[i]}</p>`;
+                            this.#selectType.elementsOfFormatsChild.className = 'finder-typeOfFormat-types';
+                            this.#selectType.elementsOfFormatsChild.id = this.#selectType.formats[i];
+                            this.#selectType.elementsOfFormatsParent.appendChild(this.#selectType.elementsOfFormatsChild);
+                            this.#selectType.elementsOfFormatsChild.addEventListener('click', (e) => {
+                                if(this.#selectType.fileFormatChosed == null){
+                                    this.#selectType.fileFormatChosed = e.target.id;
+                                    document.querySelector(`.finder-typeOfFormat-types[id="${e.target.id}"]`).style.borderColor = 'yellowgreen';
+                                    for(let i=1; i<this.#overview['children'].length; i++){
+                                        this.#overview['children'][i].id != 'directory' && this.#overview['children'][i].id.match(/[a-zA-Z0-9]+$/)[0] != this.#selectType.fileFormatChosed ? this.#overview['children'][i].style.display = 'none' : false;
+                                    }
+                                }else if(this.#selectType.fileFormatChosed == e.target.id){
+                                    for(let i=1; i<this.#overview['children'].length; i++){
+                                        this.#overview['children'][i].id != 'directory' && this.#overview['children'][i].id.match(/[a-zA-Z0-9]+$/)[0] != this.#selectType.fileFormatChosed ? this.#overview['children'][i].style.display = 'block' : false;
+                                    }
+                                    document.querySelector(`.finder-typeOfFormat-types[id="${e.target.id}"]`).style.borderColor = 'red';
+                                    this.#selectType.fileFormatChosed = null;
                                 }
-                                console.log(testSelector);
-                            });
+                        });
                         }
+                        this.#overview['typeOfFile'].appendChild(this.#selectType.elementsOfFormatsParent);
                     }
+                    this.#selectType.selectedButton.style.border = '1px solid red';
+                }else if(this.#selectType.chosed == e.target.id.match(/(file|directory)/)[0]){
+                    this.#selectType.chosed == 'file' && this.#selectType.elementsOfFormatsParent != null ? this.#selectType.elementsOfFormatsParent.remove() : console.log('NO_PARENT')
+                    for(let i=1; i<this.#overview['children'].length; i++){
+                        this.#overview['children'][i].id.match(/(file|directory)/)[0] != this.#selectType.chosed ? this.#overview['children'][i].style.display = 'block' : false
+                    }
+                    this.#selectType.chosed = null;
+                    this.#selectType.elementsOfFormatsParent = null;
+                    this.#selectType.selectedButton.style.border = '1px solid white';
+                    this.#selectType.fileFormatChosed = null;
+                }         
                 });
                 this.#overview['typeOfFile'].appendChild(this.#overview['typeOfFileChild'][i]);
             }
             this.#selectType.type = [];
+            this.#selectType.chosed = null;
         }
 }
 
@@ -519,14 +616,11 @@ let history = {
     },
     data: null,
     request: (e) => {
-        console.log('HISTORY-INIT-REQUEST..');
-        console.log(e.target.getAttribute('value'));
             fetch(`/${e.target.getAttribute('value')}`)
             .then(response => {
                 return response.json();
             })
             .then(response => {
-                console.log(response)
                 history.data = response;
                 history.build();
             })
@@ -535,8 +629,6 @@ let history = {
             })
     }, 
     build: () => {
-        console.log("history_build...");
-        console.log(history.data['tasks']);
         history.list.target = document.getElementById('history');
         history.list.parent = document.createElement('div');
         history.list.button.innerHTML = "X";
@@ -547,11 +639,19 @@ let history = {
         history.list.out += '<p id="history-header">History <span style="color:blue;font-weight:bold;">:.</span></p>'
         for(let key in history.data['tasks']){
             for(let key2 in history.data['tasks'][key]){
-                history.list.out += `<div id="${key}" style="width:100%;margin-bottom:3%;border:1px solid white;padding:1%;font-size:10px;font-family:futura;"><p class="history-type-of-task"><span class="material-symbols-outlined">task_alt</span>${key2}</p><p style="display:flex;align-items:center;margin-left:5px;"><span class="material-symbols-outlined">target</span> ${history.data['tasks'][key][key2]['target']}</p>`;
-                history.list.out += `<p style="display:flex;align-items:center;margin-left:5px;"><span class="material-symbols-outlined">trending_flat</span>${history.data['tasks'][key][key2]['s']}</p><p style="display:flex;align-items:center;margin-left:5px;"><span class="material-symbols-outlined">stop</span> ${history.data['tasks'][key][key2]['d']}</p>`;
-                history.list.out += `<p style="display:flex;align-items:center;margin-left:5px;"><span class="material-symbols-outlined">today</span>${history.data['tasks'][key][key2]['date']}</p>`;
-                history.list.out += `<button class="history-button-return" id="${key}" value="history/return-action/${key2}=${key}">return</button>`;
-                history.list.out += `</div>`;
+                if(key2 != 'mkdir'){
+                    history.list.out += `<div id="${key}" class='history-parent-container'><p class="history-type-of-task"><span class="material-symbols-outlined">task_alt</span>${key2}</p><p style="display:flex;align-items:center;margin-left:5px;"><span class="material-symbols-outlined">target</span> ${history.data['tasks'][key][key2]['target']}</p>`;
+                    history.list.out += `<p style="display:flex;align-items:center;margin-left:5px;"><span class="material-symbols-outlined">trending_flat</span>${history.data['tasks'][key][key2]['s']}</p><p style="display:flex;align-items:center;margin-left:5px;"><span class="material-symbols-outlined">stop</span> ${history.data['tasks'][key][key2]['d']}</p>`;
+                    history.list.out += `<p style="display:flex;align-items:center;margin-left:5px;"><span class="material-symbols-outlined">today</span>${history.data['tasks'][key][key2]['date']}</p>`;
+                    history.list.out += `<button class="history-button-return" id="${key}" value="history/return-action/${key2}=${key}">return</button>`;
+                    history.list.out += `</div>`;
+                }else if(key2 == 'mkdir'){
+                    history.list.out += `<div id="${key}" style="position:relative;width:100%;height:18vh;margin-bottom:3%;border:1px solid white;padding:1%;font-size:10px;font-family:futura;"><p class="history-type-of-task"><span class="material-symbols-outlined">task_alt</span>${key2}</p><p style="display:flex;align-items:center;margin-left:5px;"><span class="material-symbols-outlined">target</span> ${history.data['tasks'][key][key2]['target']}</p>`;
+                    history.list.out += `<p style="display:flex;align-items:center;margin-left:5px;"><span class="material-symbols-outlined">today</span>${history.data['tasks'][key][key2]['date']}</p>`;
+                    history.list.out += `<button class="history-button-return" id="${key}" value="history/return-action/${key2}=${key}">return</button>`;
+                    history.list.out += `</div>`;
+                }
+               
             }
         }
         history.list.parent.innerHTML += history.list.out; 
@@ -569,6 +669,64 @@ let history = {
     }
 }
 
+let initProject = {
+    trigger: document.getElementById('new-project-header'),
+    parent: null, 
+    status: true,
+    users: null,
+    main: null,
+    users: null,
+    build: () => {
+        initProject.parent = document.getElementById('new-project-parent');
+        initProject.main = document.getElementById('new-project-main');
+        if(initProject.status == true){
+            initProject.parent.setAttribute('style', 'position:absolute;z-index:300;right:290px;width:600px;height:50vh;padding:1%;background-color:white;box-shadow: -10px 5px 2px 1px rgb(60, 60, 60, 0.1);');
+            initProject.trigger.setAttribute('style','background-color:lightgrey;padding:1%;border-radius:10px');
+            initProject.main.innerHTML = `<label>Project Name</label><div id='project-input-parent'><input type='text'></div><p id='project-select-user-trigger'>Select User</p>`;
+            initProject.status = false;
+        }else if(initProject.status == false){
+            initProject.parent.setAttribute('style', 'width:100px;height:5vh;float:right;border-radius:0 0 20px 20px;padding: 0.3%;margin-right:5px;border-left:1px solid black;border-right:1px solid black;border-bottom:1px solid black;');  
+            initProject.trigger.setAttribute('style','background-color:white;padding:0;border-radius:0');
+            initProject.main.innerHTML = '';
+            document.getElementById('new-project-header-icon').innerHTML = 'new_window';
+            initProject.status = true;            
+        }
+     },
+     getUsers: (par, func) => {
+        console.log('getUsers..');
+        fetch(`/project-data/${par}`)
+        .then(response => {
+            return response.json();
+        })
+        .then(response => {
+            console.log(response);
+            let task = func(response);
+        })
+        .catch(err => {
+            console.log(err);
+        })
+    }
+}
+
+
+/*
+class BuildProject {
+    constructor(nameOfProject, file, user){
+        this.name = nameOfProject;
+        this.file = file; 
+        this.user = user;
+    }
+    
+}
+    event -> init -> 
+  constructor(id, type, response){ 
+        this.targetElement = document.querySelector(id);
+        this.type = type;
+        this.content = response;
+    }
+
+*/
+document.getElementById('new-project-header').addEventListener('click', initProject.build);
 document.body.addEventListener('onload', taskFile.init());
 history.init();
 

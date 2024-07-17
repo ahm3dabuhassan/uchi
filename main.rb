@@ -151,17 +151,20 @@ loop do
             yml_data = {:"#{saveTypeOfTasks}"=>{:target=>target[/(?<=\/file\/)[a-zA-Z0-9\/]+\.?[a-zA-Z0-9]+$/], :location=>Dir.getwd}}
         when ['mkdir']
             puts "mkdir.."
+            MKDIR_LOCATION = target[/(?<=\/directory\/)(.*)(?=\=)/]
+            # if not exists -> mkdir.
+            #  present.update(userData[:allFolders][userData[:username]].index(n), headers['Referer'][/(?<=\/inside\/|\/open\-dir\/)(.*)(?=$)/].gsub(/\s/, ''))
             Dir.chdir("#{USER_ROOT_FOLDER}/#{target[/(?<=\/directory\/)(.*)(?=\=)/]}")
             Dir.mkdir("#{target[/[a-zA-Z0-9\_\-]+$/]}")
-            yml_data = {:"#{saveTypeOfTasks}"=>{:target=>target[/[a-zA-Z0-9\_\-]+$/], :location=>target[/(?<=\/directory\/)(.*)(?=\=)/]}}
-            puts yml_data
-            while true do 
-                line = client.readline
-                break if line == "\r\n"
-                header_name, value = line.split(": ")  
-                headers[header_name] = value          
+            yml_data = {:"#{saveTypeOfTasks}"=>{:target=>target[/[a-zA-Z0-9\_\-]+$/], :location=>MKDIR_LOCATION}}
+            for i in userData[:allFolders][userData[:username]]
+                i[/[a-zA-Z\-\_0-9]+$/] == MKDIR_LOCATION[/[a-zA-Z\-\_0-9]+$/] ? SAVE_INDEX = userData[:allFolders][userData[:username]].index(i) : false
             end
-            puts "MKDIR_REFERER:: #{headers['Referer']}"
+            file_overview = FindAllFolders.new(USER_ROOT_FOLDER)
+            userData[:allFolders] = file_overview.allDirectories
+            present = Overview.new(file_overview.allDirectories, userData[:username])
+            present.update(SAVE_INDEX)
+            response_message = present.output.to_json
         end
         if File.exist?("#{USER_ROOT_FOLDER}/#{userData[:username]}/history.yml") == false && target[/(?<=\/{1}taskFile\/{1})(.*)(?=\/{1}directory|\/{1}file)/] != 'move'
         userData[:history] = History.new(userData[:username], userData[:user_root_folder]).init('init', yml_data)
@@ -202,27 +205,27 @@ loop do
         end
     when['GET', target[/\/{1}find\/{1}[a-zA-Z0-9\/\-\.]+/]]
        status_code = "200 OK"
-       puts "FIND.."
        input = target[/(?<=\/{1}find\/{1})[a-zA-Z0-9\.]+$/]
-       userData[:allFolders][userData[:username]].each { |i| 
+       userData[:allFolders][userData[:username]].each { |i|
        begin   
         if Dir.chdir(i)
              finder_allFiles = Dir.glob("*")
              finder_allFiles.each { |f| 
-                 finder_typeOfFile = File.stat("#{Dir.getwd}/#{f}")
-                 if finder_typeOfFile.file? && f[/#{input}/] 
-                     bash_file_command = `file #{f} | cut -d" " -f 2`
-                     result["f-#{bash_file_command}-#{f}"] = "#{i}/#{f}" 
-                 elsif finder_typeOfFile.directory? && i[/[a-zA-Z\/0-9]+(#{input}$|#{input}[a-zA-Z\/\.]+)$/]
-                     result["d-#{i[/[a-zA-Z0-9]+$/]}"] = i
-                 end
-             }
+             if f.include?(input)
+                finder_typeOfFile = File.stat("#{Dir.getwd}/#{f}")
+                if finder_typeOfFile.file?
+                    bash_file_command = `file #{f} | cut -d" " -f 2`
+                    result["f-#{bash_file_command}-#{f}"] = "#{i}/#{f}" 
+                elsif finder_typeOfFile.directory?
+                    result["d-#{i[/[a-zA-Z0-9]+$/]}/#{f}"] = "#{i}/#{f}" 
+                end
+             end    
+            }
          end
      rescue 
          return false
      end
-       }
-       puts "RESULT:: #{result}"
+    }
        response_message = result.to_json
        result = {}
     when['GET', '/history']
@@ -233,7 +236,40 @@ loop do
     when['GET', target[/^\/history\/?(return\-action\/(rename|move)\={1}\d+)?/]]
         status_code = "200 OK"
         userData[:history] = History.new(userData[:username], userData[:user_root_folder]).returnAction(target.gsub(/(\/history\/return-action\/)([a-z]+)\=(\d+$)/, '\2'), target.gsub(/(\/history\/return-action\/)([a-z]+)\=(\d+$)/, '\3'))
-    end
+    when['GET', target[/\/{1}find\/{1}folder\-content\=[a-zA-Z\d]+\/([a-zA-Z\-\_\/\d]+)$/]]
+        status_code = "200 OK"
+        folder_content_response = {}
+        folder_content_target = target.gsub(/\/{1}find\/{1}folder\-content\=[a-zA-Z\d]+\/([a-zA-Z\-\_\/\d]+)$/, '\1')
+        Dir.chdir("#{userData[:user_root_folder]}/#{folder_content_target}")
+        fct_all_files = Dir.glob("*")
+        if fct_all_files.length > 0 
+        folder_content_response['id'] = target[/(?<=\/{1}find\/{1}folder\-content\=).*$/]
+        fct_all_files.each { |f|
+            fctaf_type = File.stat("#{Dir.getwd}/#{f}")
+            if fctaf_type.file? 
+                folder_content_response["f-#{f}"] = f
+            elsif fctaf_type.directory?
+                folder_content_response["d-#{f}"] = f
+            end
+        }
+        else
+            folder_content_response["error"] = 'Directory is empty'
+        end
+        response_message = folder_content_response.to_json
+    when['GET', target[/\/{1}project-data\/{1}[a-zA-Z]+\-{1}[a-zA-Z]+$/]]
+        status_code = "200 OK" # /project-data/users
+        puts 'PROJECT..'
+        typeOfRequest = target[/(?<=\/{1}project-data\/{1})[a-zA-Z]+\-{1}[a-zA-Z]+$/]
+        case [typeOfRequest]
+            when['get-users']
+                puts typeOfRequest              
+                project_response_users = BuildProject.new('users').connect()
+                puts project_response_users.to_json
+                response_message = project_response_users.to_json
+            when['read-project']
+                puts typeOfRequest
+        end
+    end 
     http_response = <<~MSG
     HTTP/1.1 #{status_code}
     Content-Type: #{content_type}
