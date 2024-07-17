@@ -78,6 +78,7 @@ def headInside(titel,nickname)
             }
             header{
                 border:1px solid #252525;
+                border-radius: 0 20px;
             }
             span {
                 margin-right: 1%;
@@ -148,6 +149,7 @@ def headInside(titel,nickname)
                 padding-left: 1%;
                 padding-right: 1%;
                 margin-bottom: 1%;
+                margin-top:10px;
                 border:1px solid #252525;
                 border-radius: 0 20px 0 20px;
             }
@@ -325,7 +327,6 @@ def headInside(titel,nickname)
                 align-items: center;
                 border: 1px solid #252525; 
                 padding: 1%;
-                display: flex; 
                 height: 24px;
                 border-radius: 0 0 20px 20px;
             }
@@ -352,6 +353,7 @@ def headInside(titel,nickname)
             #finder-result-header{
                 display:flex;
                 justify-content: space-between;
+                margin-bottom:1%;
             }
             #finder-result-header > h3{
                 width:50%;
@@ -373,7 +375,7 @@ def headInside(titel,nickname)
                 border: 1px solid #252525;
                 border-radius: 0 20px;
                 padding: 10px;
-            }
+            }      
             #history-trigger > p {
                 font-size:11px;
             }
@@ -429,6 +431,290 @@ def headInside(titel,nickname)
             #history-list > div > p:nth-of-type {
                 color: #252525;
             }
+            #finder-filter-header {
+                width:100%;
+                display:flex;
+                justify-content:space-evenly;
+                border: 1px solid white;
+                border-radius:8px;
+            }
+            .finder-filter-buttons {
+                margin:0;
+            }
+            .finderFilterButtonsIcons {
+                font-size:21px;
+            }
+            .finder-filter-format{
+                width:27px;
+                border:1px solid yellowgreen;
+                font-size: 9px;
+                padding:2%;
+                text-align: center; 
+                border-radius: 4px;
+                margin-left:5px;
+                margin-top: 2px;
+                margin-bottom:0;
+                float:left;
+            }
+            #mkdir {
+                float:left;
+                display:flex;
+                justify-content: center; 
+                width:4%;
+                height:7vh;
+                align-items: center;
+                padding-left:1%;
+                padding-right:1%;
+                margin-bottom:1%;
+                margin-top:10px;
+                margin-left:10px;
+                border:1px solid #252525;
+                border-radius:20px 20px 20px 0;
+                color: blue;
+            }
+            #mkdir > span:nth-of-type(1){
+                color: orange;
+                font-weight:bold;
+            }
+            #mkdir > span:nth-of-type(2){
+                font-weight: 500;
+            }
+            #history-header{
+                font-family:futura;
+                color:beige;
+                margin-top:2px;
+                margin-left:2px;
+
+            }
+            #mkdir-parent {
+                position:absolute; 
+                z-index:200;
+                width:260px;
+                height:30vh;
+                padding:1%;
+                background-color:white;
+                top:200px;
+                left:500px;
+                border-radius:20px;   
+                box-shadow: 2px 2px 3px 1px rgb(60, 60, 60, 0.3);
+            }
+            #mkdir-parent-header{
+                font-size:15px;
+                display: flex; 
+                align-items:center;
+                justify-content:center;
+                color: #252525;
+                background-color:whitesmoke;
+                padding:1%;
+                border-radius: 10px;
+                height:4vh;
+            }
+            #mkdir-parent-header > span{
+                color:blue;
+                font-size:27px;
+            }
+            #mkdir-parent > label {
+                margin:5px;  
+                font-size: 12px; 
+                color: #252525;
+            }
+            #mkdir-parent > button{
+                width:45%;
+                margin:5px;
+                margin-top:18px;
+                font-family:futura;
+                font-size:12px;
+                border:0; 
+                border-radius:10px;
+                background-color:whitesmoke;
+            }    
+            #mkdir-input {
+                width:190px;
+                margin-bottom:10px;
+                font-family:futura;
+                font-size:14px;
+                letter-spacing:2;
+            }    
+            #mkdir-parent > button:nth-of-type(1) {
+                display:block;
+                float:left;
+            }
+            #mkdir-parent-wd{
+                display:flex;
+                justify-content:center;
+                align-items:center; 
+                margin-bottom:5px;
+                border-radius: 10px;
+                padding:1%;
+                color:#252525;
+                width:70%;
+            }
+            #mkdir-parent-wd{
+                font-size:12px;
+            }
+            #mkdir-parent-wd > span{
+               color:blue;
+            }
+            .finder-folder-content{
+                display:flex;
+                align-items:center;
+                justify-content: center;
+                width:120px;
+                height:10px;
+                font-size: 10px;
+                margin-top:0.5%;
+                border-left: 1px solid white;
+                border-right: 1px solid white;
+                border-bottom: 1px solid white;
+            }
+            .finder-result-showContent{
+                width:20%;
+                height:3vh;
+                font-size:8px;
+                background-color:black;
+                border-radius:5px;
+                display:flex;
+                justify-content:center;
+                margin-left:30px;
+            }
+            .finder-result-showContent > p{
+                display:flex;
+                align-items:center;
+                font-size:11px;
+            }
+            .finder-result{
+                position:relative;
+                width:50%;
+                margin-bottom:1%;
+            }
+            .finder-result > p:nth-of-type(1){
+                font-size:14px;
+                margin-left:30px;
+            }
+            .finder-result > p:nth-of-type(1){
+                width:50%;
+            }  
+            .folder-content-list{
+               margin-left:10%;
+            }
+            #folderContentListIcon{
+                font-size: 14px;
+                margin-right:2%;
+            }
+            .finder-result-showContent-header {
+                background-color:#252525;
+            }
+            #show-content-icon{
+                float:left;
+            }
+            #finder-typOfFormat-Parent{
+                display:inline-block;
+                width:50px;
+                height: 6vh;
+                padding:2%;
+                margin-left: 2%;
+                margin-top:4%;
+                border:1px solid aqua;
+                border-radius: 5px 0 0 5px;
+                font-size:7px;
+                writing-mode: vertical-rl;
+            }
+            .finder-typeOfFormat-types{
+                width:22px;
+                height: 4.5vh;
+                border:1px solid red;
+                border-radius:2.5px;
+                text-align:center;
+            }
+            .history-parent-container{
+                position:relative;
+                width:100%;
+                height:22vh;
+                margin-bottom:3%;
+                border:1px solid white;
+                padding:1%;
+                font-size:10px;
+                font-family:futura;
+            }
+            .history-parent-container > button {
+                position:absolute;
+                bottom:5px;
+            }
+            #new-project-parent{
+                width:100px;
+                height:5vh;
+                float:right;
+                border-radius:0 0 20px 20px;         
+                padding: 0.3%;
+                margin-right:5px; 
+                border-left:1px solid black;
+                border-right:1px solid black;
+                border-bottom:1px solid black;
+                font-size: 14px;
+                color:#252525;
+            }
+            #new-project-parent > input:nth-of-type(1){
+                width:250px;
+                height:3vh;
+                margin-left:10px;
+            }
+            #new-project-parent > label{
+                margin-left:5%;
+            }
+            #new-project-header {
+                display:flex;
+                justify-content:center; 
+                align-items:center;
+                font-size:14px; 
+                color:#252525;
+                margin-bottom:5%;
+            }
+            #new-project-header > span:nth-of-type(1){
+                font-weight:bold;
+                color:blue;
+                margin-right:6px;
+                margin-left:6px;
+            }
+            #new-project-main{
+                display:grid;
+                grid-template-columns: 1fr 1fr;
+            }
+            #new-project-main > label:nth-of-type(1){
+                border:2px solid lightgrey; 
+                border-radius:10px;
+                height:3vh; 
+                margin-right:10px;
+                align-self:center; 
+                justify-self:end; 
+                width:80%;
+                text-align:center;
+                line-height:2;
+                padding:1%;
+            }
+            #project-input-parent{
+                width:90%;
+                height:5vh;
+                padding:1%;
+                display:flex;
+                justify-content:center;
+                align-items:center;
+                border:2px solid lightgrey;
+                border-radius:10px;
+            }
+            #project-input-parent > input{
+                width:90%;
+                height:3vh;
+            }
+            #project-select-user-trigger{
+                justify-self:end;
+                width:80%;
+                padding:1%;
+                margin-right:10px;
+                border:1px solid blue; 
+                text-align:center;
+                border:2px solid lightgrey;
+                border-radius:10px;
+            }
             </style>
             <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
             </head>
@@ -448,6 +734,7 @@ def headInside(titel,nickname)
         </div>
     </header>
     <body>
+    <div id='new-project-parent'><div id='new-project-header'><span id='new-project-header-icon' class="material-symbols-outlined">new_window</span>Build Project</div><div id='new-project-main'></div></div>
     <h1>Hello, #{nickname}.</h1>
     STR
 end
