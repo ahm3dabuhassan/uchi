@@ -369,14 +369,14 @@ class Finder {
             header: document.createElement('div'),
             typeOfFile: document.createElement('div'),
             typeOfFileChild: [],
-            chosed: null,
+            chosen: null,
        };
        #selectType = {   
         counter: 0, 
         type: [],
         format: [],
         selectedButton: null,
-        chosed: null,
+        chosen: null,
         fileFormatChosed: null,
         formats: [], 
         elementsOfFormatsParent: null, 
@@ -402,8 +402,6 @@ class Finder {
             counter:0,
             elements:{},
             event: (id) => { 
-                console.log('AAA:');
-                console.log(this.#requestFolderContent.elements);
                 this.#requestFolderContent.counter = 0;
                 if(!this.#requestFolderContent.elements[id]){
                     this.#requestFolderContent.elements[id] = []; 
@@ -464,7 +462,6 @@ class Finder {
             });
        }
        build(p){
-            console.log("A_BUILD_FINDER:.");
             this.#selectType.format = [];
             this.#overview['children'] = [];
             this.#overview.cleaner = document.querySelectorAll('.finder-result');
@@ -551,15 +548,15 @@ class Finder {
                 }
                 this.#overview['typeOfFileChild'][i].addEventListener('click', (e) => {
                 this.#selectType.selectedButton = document.getElementById(e.target.id.match(/(file|directory)/)[0]);
-                if(this.#selectType.chosed == null){
-                    this.#selectType.chosed = e.target.id.match(/(file|directory)/)[0];
+                if(this.#selectType.chosen == null){
+                    this.#selectType.chosen = e.target.id.match(/(file|directory)/)[0];
                     for(let i=1; i<this.#overview['children'].length; i++){
-                        this.#overview['children'][i].id.match(/(file|directory)/)[0] != this.#selectType.chosed ? this.#overview['children'][i].style.display = 'none' : false
-                        if(this.#selectType.chosed == 'file' && this.#overview['children'][i].id.match(/(file|directory)/)[0] == 'file'){
+                        this.#overview['children'][i].id.match(/(file|directory)/)[0] != this.#selectType.chosen ? this.#overview['children'][i].style.display = 'none' : false
+                        if(this.#selectType.chosen == 'file' && this.#overview['children'][i].id.match(/(file|directory)/)[0] == 'file'){
                             this.#selectType.formats.includes(this.#overview['children'][i].id.match(/[a-zA-Z0-9]+$/)[0]) == false ? this.#selectType.formats.push(this.#overview['children'][i].id.match(/[a-zA-Z0-9]+$/)[0]) : false
                         }
                     }
-                    if(this.#selectType.chosed == 'file' && this.#selectType.formats.length > 0 && this.#selectType.elementsOfFormatsParent == null){
+                    if(this.#selectType.chosen == 'file' && this.#selectType.formats.length > 0 && this.#selectType.elementsOfFormatsParent == null){
                         this.#selectType.elementsOfFormatsParent = document.createElement('div');
                         this.#selectType.elementsOfFormatsParent.id = 'finder-typOfFormat-Parent';
                         for(let i=0; i<this.#selectType.formats.length; i++){
@@ -587,12 +584,12 @@ class Finder {
                         this.#overview['typeOfFile'].appendChild(this.#selectType.elementsOfFormatsParent);
                     }
                     this.#selectType.selectedButton.style.border = '1px solid red';
-                }else if(this.#selectType.chosed == e.target.id.match(/(file|directory)/)[0]){
-                    this.#selectType.chosed == 'file' && this.#selectType.elementsOfFormatsParent != null ? this.#selectType.elementsOfFormatsParent.remove() : console.log('NO_PARENT')
+                }else if(this.#selectType.chosen == e.target.id.match(/(file|directory)/)[0]){
+                    this.#selectType.chosen == 'file' && this.#selectType.elementsOfFormatsParent != null ? this.#selectType.elementsOfFormatsParent.remove() : console.log('NO_PARENT')
                     for(let i=1; i<this.#overview['children'].length; i++){
-                        this.#overview['children'][i].id.match(/(file|directory)/)[0] != this.#selectType.chosed ? this.#overview['children'][i].style.display = 'block' : false
+                        this.#overview['children'][i].id.match(/(file|directory)/)[0] != this.#selectType.chosen ? this.#overview['children'][i].style.display = 'block' : false
                     }
-                    this.#selectType.chosed = null;
+                    this.#selectType.chosen = null;
                     this.#selectType.elementsOfFormatsParent = null;
                     this.#selectType.selectedButton.style.border = '1px solid white';
                     this.#selectType.fileFormatChosed = null;
@@ -601,7 +598,7 @@ class Finder {
                 this.#overview['typeOfFile'].appendChild(this.#overview['typeOfFileChild'][i]);
             }
             this.#selectType.type = [];
-            this.#selectType.chosed = null;
+            this.#selectType.chosen = null;
         }
 }
 
@@ -673,21 +670,28 @@ let initProject = {
     trigger: document.getElementById('new-project-header'),
     parent: null, 
     status: true,
-    users: null,
+    users: null, 
     main: null,
     users: null,
     build: () => {
         initProject.parent = document.getElementById('new-project-parent');
         initProject.main = document.getElementById('new-project-main');
         if(initProject.status == true){
-            initProject.parent.setAttribute('style', 'position:absolute;z-index:300;right:290px;width:600px;height:50vh;padding:1%;background-color:white;box-shadow: -10px 5px 2px 1px rgb(60, 60, 60, 0.1);');
-            initProject.trigger.setAttribute('style','background-color:lightgrey;padding:1%;border-radius:10px');
-            initProject.main.innerHTML = `<label>Project Name</label><div id='project-input-parent'><input type='text'></div><p id='project-select-user-trigger'>Select User</p>`;
+            initProject.parent.setAttribute('style', 'position:absolute;z-index:300;right:290px;width:850px;height:50vh;padding:1%;background-color:white;box-shadow: -10px 5px 2px 1px rgb(60, 60, 60, 0.1);');
+            initProject.trigger.setAttribute('style','background-color:lightgrey;padding:1%;border-radius:50%;width:15px;height:15px;float:right;');
+            initProject.trigger.children[1].style.display = 'none';
+            initProject.trigger.children[0].innerHTML = 'close';
+            initProject.main.innerHTML = `<div id='new-project-parent-header'><span class="material-symbols-outlined">construction</span><p>Build Project</p></div><label>Project Name</label><div id='project-input-parent'><input type='text'></div><div id='project-select-user-parent'><p id='project-select-user-trigger' value='get-users'>Select User</p></div>`;
+            document.getElementById('project-select-user-trigger').addEventListener('click', () => {initProject.getUsers('get-users', (x) => {
+                initProject.buildUsers(x);
+            })}, false);
             initProject.status = false;
         }else if(initProject.status == false){
             initProject.parent.setAttribute('style', 'width:100px;height:5vh;float:right;border-radius:0 0 20px 20px;padding: 0.3%;margin-right:5px;border-left:1px solid black;border-right:1px solid black;border-bottom:1px solid black;');  
             initProject.trigger.setAttribute('style','background-color:white;padding:0;border-radius:0');
+            initProject.trigger.children[1].style.display = 'block';
             initProject.main.innerHTML = '';
+            initProject.users.remove();
             document.getElementById('new-project-header-icon').innerHTML = 'new_window';
             initProject.status = true;            
         }
@@ -699,12 +703,23 @@ let initProject = {
             return response.json();
         })
         .then(response => {
-            console.log(response);
+            //console.log(response);
             let task = func(response);
         })
         .catch(err => {
             console.log(err);
         })
+    },
+    buildUsers:(x) => {
+        console.log(x);
+        initProject.users = document.createElement('div');
+        initProject.users.id = 'new-project-users-overview';
+        for(let i=0; i<x.length; i++){
+            initProject.users.innerHTML += `<div class='new-project-user'><p>Username: ${x[i][0]}</p><p>First Name: ${x[i][1]}</p><p>Last Name: ${x[i][2]}</p><p>Contact: ${x[i][3]}</p></div>`;
+        }
+        initProject.parent.style.width = '850px';
+        initProject.main.style.width = '100%';
+        document.getElementById('project-select-user-parent').appendChild(initProject.users);
     }
 }
 

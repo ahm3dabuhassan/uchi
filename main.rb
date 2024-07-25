@@ -78,10 +78,10 @@ loop do
             content_type = "text/html; charset=utf-8"
             Dir.chdir(HOME)
             USER_ROOT_FOLDER = "/Users/ahmedabu-hassan/Desktop/uchi/Users"
-            file_overview = FindAllFolders.new(USER_ROOT_FOLDER)
-            userData[:allFolders] = file_overview.allDirectories
-            puts "ALL-FOLDERS:: #{userData[:allFolders]}"
             userData[:username] = userData["Username"]
+            file_overview = FindAllFolders.new(USER_ROOT_FOLDER)
+            userData[:allFolders] = file_overview.allDirectories 
+            puts "ALL-FOLDERS:: #{userData[:allFolders]}"
             userData[:user_root_folder] = "#{USER_ROOT_FOLDER}/#{userData["Username"]}"
             present = Overview.new(file_overview.allDirectories, userData["Username"])
             user_cookie_location = ""
