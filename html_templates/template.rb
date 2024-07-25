@@ -675,25 +675,22 @@ def headInside(titel,nickname)
                 margin-right:6px;
                 margin-left:6px;
             }
-            #new-project-main{
-                display:grid;
-                grid-template-columns: 1fr 1fr;
+            #new-project-header > p:nth-of-type(1){
+                margin:0;
             }
             #new-project-main > label:nth-of-type(1){
+                float:left;
                 border:2px solid lightgrey; 
                 border-radius:10px;
-                height:3vh; 
                 margin-right:10px;
                 align-self:center; 
-                justify-self:end; 
-                width:80%;
+                width:180px;
                 text-align:center;
-                line-height:2;
                 padding:1%;
             }
             #project-input-parent{
-                width:90%;
-                height:5vh;
+                width:280px;
+                height:2.2vh;
                 padding:1%;
                 display:flex;
                 justify-content:center;
@@ -702,18 +699,51 @@ def headInside(titel,nickname)
                 border-radius:10px;
             }
             #project-input-parent > input{
-                width:90%;
+                width:265px;
                 height:3vh;
+                font-size:16px;
+                letter-spacing:1;
+                font-weight:500;
+                color:#252525;
             }
             #project-select-user-trigger{
-                justify-self:end;
-                width:80%;
+                float:left;
+                width:180px;
                 padding:1%;
-                margin-right:10px;
+                margin:0;
                 border:1px solid blue; 
                 text-align:center;
                 border:2px solid lightgrey;
                 border-radius:10px;
+            }
+            #new-project-parent-header{
+                width:100px;
+                border-radius:10px;
+                padding:1%;
+                font-size:16px;
+                font-weight:bold;
+            }
+            #new-project-parent-header > span{
+               font-size:40px;
+               color:blue;
+            }
+            #new-project-users-overview{
+                float:left;
+                width:600px;
+                height:25vh;
+                overflow:hidden;
+                padding:2%;
+                margin-left:10px;
+                border:2px solid lightgrey;
+                border-radius:10px;
+            }
+            #project-select-user-parent{
+                margin-top:20px;
+            }
+            .new-project-user{
+                margin-bottom:9px;
+                font-size:11px;
+                border:1px solid blue;
             }
             </style>
             <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
@@ -734,7 +764,7 @@ def headInside(titel,nickname)
         </div>
     </header>
     <body>
-    <div id='new-project-parent'><div id='new-project-header'><span id='new-project-header-icon' class="material-symbols-outlined">new_window</span>Build Project</div><div id='new-project-main'></div></div>
+    <div id='new-project-parent'><div id='new-project-header'><span id='new-project-header-icon' class="material-symbols-outlined">new_window</span><p>Build Project</p></div><div id='new-project-main'></div></div>
     <h1>Hello, #{nickname}.</h1>
     STR
 end
