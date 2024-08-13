@@ -151,7 +151,7 @@ def headInside(titel,nickname)
                 margin-bottom: 1%;
                 margin-top:10px;
                 border:1px solid #252525;
-                border-radius: 0 20px 0 20px;
+                border-radius: 20px 0 0 20px;
             }
             #working-directory-path{
                 font-size:12px;   
@@ -262,6 +262,7 @@ def headInside(titel,nickname)
                 padding:1%;
                 margin: 0 auto;
                 margin-bottom: 5px;
+                overflow:hidden;
             }
             .inside-move-overview-child-header{
                 border-radius: 5px 5px 0 0;
@@ -270,6 +271,7 @@ def headInside(titel,nickname)
             .inside-move-overview-child-header > p:nth-of-type(1){
                 margin:0;
                 padding:1.3%;
+                margin-left:4px;
             }
             .empty-folder {
                 width:92%;
@@ -278,8 +280,18 @@ def headInside(titel,nickname)
                 align-items:center;
                 justify-content:center;
                 margin: 0 auto;
+                margin-top:24px;
                 border: 1px solid whitesmoke;
             }
+            .move-directories > p:nth-of-type(1) {
+                width:46px;
+                padding-left:4px;
+                padding-right:4px;
+                border-radius:2.5px;
+                margin-left: 6px;
+                border-left:1px solid white;
+                border-bottom:1px solid white;
+            }    
             #move-elements-button {
                 position:absolute;
                 right:33px;
@@ -369,11 +381,12 @@ def headInside(titel,nickname)
             }
             #history {
                 display:flex;
+                height:5.1vh;
                 align-items:center;
                 justify-content:center;
                 float:right; 
                 border: 1px solid #252525;
-                border-radius: 0 20px;
+                border-radius: 0 20px 20px 0;
                 padding: 10px;
             }      
             #history-trigger > p {
@@ -382,6 +395,7 @@ def headInside(titel,nickname)
             #history > span {
                 color:orange;
                 margin-right:1%;
+                margin-left:11%;
                 font-size:28px;
             }
             .history-type-of-task {
@@ -396,7 +410,7 @@ def headInside(titel,nickname)
             #history-list {
                 position:absolute; 
                 z-index:100; 
-                right: 7px; 
+                right: 1px; 
                 top: 200px;
                 padding:1%;
                 background-color: lightgray; 
@@ -414,7 +428,8 @@ def headInside(titel,nickname)
                 font-family:futura;
                 letter-spacing: 4px;
                 margin-left:5%;
-                margin-bottom:2%;
+                position:absolute; 
+                bottom:6px;
             }
             #history-list > div > p:nth-of-type(1) > span {
                 color: green;
@@ -461,7 +476,7 @@ def headInside(titel,nickname)
                 display:flex;
                 justify-content: center; 
                 width:4%;
-                height:7vh;
+                height:6.8vh;
                 align-items: center;
                 padding-left:1%;
                 padding-right:1%;
@@ -469,7 +484,7 @@ def headInside(titel,nickname)
                 margin-top:10px;
                 margin-left:10px;
                 border:1px solid #252525;
-                border-radius:20px 20px 20px 0;
+                border-radius:0 20px 20px 0;
                 color: blue;
             }
             #mkdir > span:nth-of-type(1){
@@ -494,7 +509,7 @@ def headInside(titel,nickname)
                 padding:1%;
                 background-color:white;
                 top:200px;
-                left:500px;
+                left:656px;
                 border-radius:20px;   
                 box-shadow: 2px 2px 3px 1px rgb(60, 60, 60, 0.3);
             }
@@ -606,10 +621,12 @@ def headInside(titel,nickname)
             }
             #show-content-icon{
                 float:left;
+                height: 2.6vh;
+                font-size:22px;
             }
             #finder-typOfFormat-Parent{
-                display:inline-block;
-                width:50px;
+                display:flex;
+                width:104px;
                 height: 6vh;
                 padding:2%;
                 margin-left: 2%;
@@ -617,14 +634,14 @@ def headInside(titel,nickname)
                 border:1px solid aqua;
                 border-radius: 5px 0 0 5px;
                 font-size:7px;
-                writing-mode: vertical-rl;
             }
             .finder-typeOfFormat-types{
                 width:22px;
-                height: 4.5vh;
+                height: 5.5vh;
                 border:1px solid red;
                 border-radius:2.5px;
                 text-align:center;
+                writing-mode: tb-rl;
             }
             .history-parent-container{
                 position:relative;
@@ -677,10 +694,12 @@ def headInside(titel,nickname)
             }
             #new-project-header > p:nth-of-type(1){
                 margin:0;
+                font-size: 14px;
+                margin-left:3px;
             }
-            #new-project-main > label:nth-of-type(1){
+            #new-project-main >  div:nth-of-type(2){
                 float:left;
-                border:2px solid lightgrey; 
+                border:1px solid lightgrey; 
                 border-radius:10px;
                 margin-right:10px;
                 align-self:center; 
@@ -689,17 +708,17 @@ def headInside(titel,nickname)
                 padding:1%;
             }
             #project-input-parent{
-                width:280px;
+                width:72%;
                 height:2.2vh;
                 padding:1%;
                 display:flex;
                 justify-content:center;
                 align-items:center;
-                border:2px solid lightgrey;
+                border:1px solid lightgrey;
                 border-radius:10px;
             }
             #project-input-parent > input{
-                width:265px;
+                width:96%;
                 height:3vh;
                 font-size:16px;
                 letter-spacing:1;
@@ -713,15 +732,16 @@ def headInside(titel,nickname)
                 margin:0;
                 border:1px solid blue; 
                 text-align:center;
-                border:2px solid lightgrey;
+                border:1px solid lightgrey;
                 border-radius:10px;
             }
             #new-project-parent-header{
+                display:flex;
+                align-items:center;
                 width:100px;
+                height:5vh;
                 border-radius:10px;
-                padding:1%;
-                font-size:16px;
-                font-weight:bold;
+                margin-bottom:27px;
             }
             #new-project-parent-header > span{
                font-size:40px;
@@ -729,21 +749,109 @@ def headInside(titel,nickname)
             }
             #new-project-users-overview{
                 float:left;
-                width:600px;
-                height:25vh;
-                overflow:hidden;
+                width:70%;
+                height:34vh;
+                overflow:scroll;
+                overflow-x:hidden;
                 padding:2%;
                 margin-left:10px;
-                border:2px solid lightgrey;
+                border:1px solid lightgrey;
                 border-radius:10px;
             }
             #project-select-user-parent{
                 margin-top:20px;
             }
             .new-project-user{
+                height:130px;
+                position:relative;
                 margin-bottom:9px;
                 font-size:11px;
-                border:1px solid blue;
+                border:1px solid lightgrey;
+                border-radius: 0 0 30px;
+            }
+            .new-project-user > img {
+                float:left;
+            }
+            .new-project-user-child-p{
+
+            }
+            .new-project-user-info{
+                width:80%;
+            }
+            .project-action-container{
+                position:absolute; 
+                top:8px;
+                right:8px;
+            }
+            .project-action-container > span{
+                color:blue; 
+                font-weight:500;
+            }
+            .build-project-action-button{
+                display:inline-block;
+                width:180px;
+                padding:1%;
+                text-align:center; 
+                border:2px solid lightgrey;
+                border-radius:10px;
+            }
+            #present-file-parent{
+                min-height:64vh;
+                border:1px solid lightgrey;
+                padding:24px;
+            }
+            #present-file-parent > h3{
+                display:flex;
+                width:150px;
+                border-bottom:1px solid blue;
+               
+            }
+            #present-file-details{
+                width: 22%;
+                padding-left:15px;
+                padding-right:15px;
+                margin-right:20px;
+                font-size:13px;
+                color:#252525;
+                border-radius:15px;
+                float:right;
+                border: 1px solid lightgrey;
+            }
+            .present-file-details-p{
+                display:flex;
+                align-items:center;
+                margin-bottom:10px;
+                width:200px;
+            }
+            #present-file-parent-download{
+                float:right;
+                width:100px;
+                margin-right:10px;
+                color:blue;
+                background-color:whitesmoke;
+                padding:2px;
+            }
+            #present-file-text{
+                width:50%;
+                padding:10px;
+                color:#252525;
+                border:1px solid lightgrey;
+            }
+            #present-file-back-parentDirectory{
+                text-decoration:none; 
+                font-size:12px; 
+                color:#252525;
+                display:flex;
+                align-items:center;
+                border:2px solid whitesmoke; 
+                width:70px;
+                border-radius:7px;
+                color:lightgrey;
+            }
+            #present-file-back-parentDirectory > span{
+                color: blue;
+                font-size:16px;
+                margin-left:9px;
             }
             </style>
             <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
