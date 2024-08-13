@@ -11,7 +11,7 @@ home = `echo $HOME`
 HOME = "/Users/ahmedabu-hassan/Desktop/uchi/Users"
 server = TCPServer.new(8080)
 
-userData = { 
+userData = {
     :username => nil,
     :user_id => nil,
     :user_root_folder => nil,
@@ -88,9 +88,9 @@ loop do
             response_message = headInside("Inside",target[/[a-zA-Z0-9]+$/])
             response_message << present.output
         end
-    when ['GET', target[/^\/{1}open\-{1}(file|dir)\/{1}[a-zA-Z0-9\/\.\-]+/]]
+    when ['GET', target[/^\/{1}open\-{1}(file|dir)\/{1}[a-zA-Z0-9\/\.\-\_]+/]]
         status_code = "200 OK"
-        saveF =  target[/[a-zA-Z0-9]+\/{1}[a-zA-Z0-9]+\.{1}[a-zA-Z]{2,3}$/]
+        saveF =  target[/[a-zA-Z0-9]+\/{1}[a-zA-Z0-9\_]+\.{1}[a-zA-Z]{2,3}$/]
         counter = 0 
         response_message = headInside("Inside",userData[:username])
         for i in userData[:allFolders]["#{userData[:username]}"]
@@ -98,14 +98,17 @@ loop do
                 present = Overview.new(userData[:allFolders], userData[:username], counter)
                 response_message << present.output
             elsif target[/^\/{1}open\-{1}file\/{1}/] == "/open-file/" 
-                saveF =  target[/[a-zA-Z0-9]+\/{1}[a-zA-Z0-9]+\.?[a-zA-Z]{2,3}$/]
-                if i[/[a-zA-Z0-9]+$/] == saveF[/^[a-zA-Z0-9]+/] 
+                saveF =  target[/[a-zA-Z0-9\-\_]+\/{1}[a-zA-Z0-9\-\_]+\.?[a-zA-Z]{2,4}$/]
+                if i[/[a-zA-Z0-9\-\_]+$/] == saveF[/^[a-zA-Z0-9\-\_]+/] 
                     Dir.chdir(i)
-                    filez = File.read("#{i}/#{target[/[a-zA-Z0-9]+\.?[a-zA-Z]{2,3}$/]}")
+                    filez = File.read("#{i}/#{target[/[a-zA-Z0-9\-\_]+\.?[a-zA-Z]{2,4}$/]}")
                     #bash_command = ` cd /Users/ahmedabu-hassan/Desktop/uchi; echo "BASH_PWD:: ${PWD}"; chmod +x bash_commands.sh;` #`xxd #{target[/[a-zA-Z0-9]+\.{1}[a-zA-Z]{2,3}$/]} | head`
                     #puts bash_command
+                    FileView.new(saveF, userData[:user_root_folder]).init()
                     response_message = headInside("#{i[/[a-zA-Z0-9]+$/]}",userData[:username])
-                    response_message << "<img src='data:image/jpg;base64,#{Base64.encode64(filez)}' width='400' height='500'>"
+                    #response_message << "<img src='data:image/jpg;base64,#{Base64.encode64(filez)}' width='400' height='500'>"
+                    response_message << FileView.new(saveF, userData[:user_root_folder]).init()
+                    response_message << implementJS("inside.js")
                 end
             end
             counter += 1
@@ -116,7 +119,7 @@ loop do
             Set-Cookie: session_uid=#{userData["Id"]}_#{userData["Username"]};Max-Age=0
             Location: /home
         STR
-    when ['GET', target[/^\/{1}taskFile\/{1}(boot|move|rename|delete|mkdir)\/{1}(file|directory)\/{1}[a-zA-Z0-9\/\.\-\%\,\=:]+/]]
+    when ['GET', target[/^\/{1}taskFile\/{1}(boot|move|rename|delete|mkdir)\/{1}(file|directory)\/{1}[a-zA-Z0-9\/\.\-\%\,\_\=:]+/]]
         saveTypeOfTasks = target[/(?<=\/{1}taskFile\/{1})(.*)(?=\/{1}directory|\/{1}file)/]
         status_code = "200 OK"
         case[target[/(?<=\/{1}taskFile\/{1})(.*)(?=\/{1}directory|\/{1}file)/]]
@@ -183,9 +186,10 @@ loop do
         end
         body = client.read(headers['Content-Length'].to_i)
         mv_file = JSON.parse(body)
+        puts mv_file["s"][/[a-zA-Z0-9]+\.?[a-zA-Z0-9]+$/]
         Dir.chdir("#{HOME}/#{mv_file["s"][/(?<=^)(.*)(?=\/[a-zA-Z0-9\_\-]+\.?[a-z0-9]{2,3}$)/]}")
         FileUtils.mv("#{HOME}/#{mv_file["s"]}", "#{HOME}/#{mv_file["d"]}")
-        yml_data = {:"move"=>{:target=>mv_file["s"][/[a-zA-Z0-9]+.?[a-zA-Z0-9]+$/], :s=>"#{mv_file["s"]}", :d=>"#{mv_file["d"]}"}}
+        yml_data = {:"move"=>{:target=>mv_file["s"][/[a-zA-Z0-9]+\.?[a-zA-Z0-9]+$/], :s=>"#{mv_file["s"]}", :d=>"#{mv_file["d"]}"}}
         if File.exist?("#{USER_ROOT_FOLDER}/#{userData[:username]}/history.yml") == false 
             userData[:history] = History.new(userData[:username], userData[:user_root_folder]).init('init', yml_data)
         elsif File.exist?("#{USER_ROOT_FOLDER}/#{userData[:username]}/history.yml") == true
@@ -214,7 +218,7 @@ loop do
              if f.include?(input)
                 finder_typeOfFile = File.stat("#{Dir.getwd}/#{f}")
                 if finder_typeOfFile.file?
-                    bash_file_command = `file #{f} | cut -d" " -f 2`
+                    bash_file_command = `file #{f} | cut -d" " -f 2 | tr -d '\n'`
                     result["f-#{bash_file_command}-#{f}"] = "#{i}/#{f}" 
                 elsif finder_typeOfFile.directory?
                     result["d-#{i[/[a-zA-Z0-9]+$/]}/#{f}"] = "#{i}/#{f}" 
@@ -226,6 +230,7 @@ loop do
          return false
      end
     }
+       puts result
        response_message = result.to_json
        result = {}
     when['GET', '/history']
@@ -235,6 +240,9 @@ loop do
         response_message = readYML.to_json
     when['GET', target[/^\/history\/?(return\-action\/(rename|move)\={1}\d+)?/]]
         status_code = "200 OK"
+        puts "RETURN"
+        puts target.gsub(/(\/history\/return-action\/)([a-z]+)\=(\d+$)/, '\2')
+        puts target.gsub(/(\/history\/return-action\/)([a-z]+)\=(\d+$)/, '\3')
         userData[:history] = History.new(userData[:username], userData[:user_root_folder]).returnAction(target.gsub(/(\/history\/return-action\/)([a-z]+)\=(\d+$)/, '\2'), target.gsub(/(\/history\/return-action\/)([a-z]+)\=(\d+$)/, '\3'))
     when['GET', target[/\/{1}find\/{1}folder\-content\=[a-zA-Z\d]+\/([a-zA-Z\-\_\/\d]+)$/]]
         status_code = "200 OK"
@@ -262,13 +270,17 @@ loop do
         typeOfRequest = target[/(?<=\/{1}project-data\/{1})[a-zA-Z]+\-{1}[a-zA-Z]+$/]
         case [typeOfRequest]
             when['get-users']
-                puts typeOfRequest              
-                project_response_users = BuildProject.new('users').connect()
-                puts project_response_users.to_json
+                puts typeOfRequest         
+                project_response_users = BuildProject.new('users', userData[:username]).connect()
                 response_message = project_response_users.to_json
             when['read-project']
                 puts typeOfRequest
         end
+    when['GET', target[/\/getFile\/[a-zA-Z0-9\-\_\/]+\.?[a-zA-Z0-9]{0,4}/]] 
+         status_code = "200 OK"
+         puts "GET-FILE: #{target}"
+         puts "GET_FILE_DIRECTORY: #{target[/(?<=\/getFile\/)(.*)/]}"
+         puts # (?<=\/getFile\/)(.*)(?=\/[a-zA-Z0-9\-\_]\.?[a-zA-Z0-9]{0,4})
     end 
     http_response = <<~MSG
     HTTP/1.1 #{status_code}

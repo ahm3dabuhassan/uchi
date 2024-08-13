@@ -20,6 +20,7 @@ let taskFile = {
     username: null, 
     moveIdUpdate: null,
     folderStatus: null,
+    folderContent: null,
     regEx:{ 
         pattern: null,
         instance: null
@@ -123,13 +124,14 @@ let taskFile = {
     },
     rename: (e) => {
         if(e.target.name == 'rename'){
+            console.log("RENAME");
             taskFile.typeOfTask = 'rename';
             taskFile.controlPanel.components[3].name = 'cancel';
             taskFile.controlPanel.components[3].innerHTML = 'Cancel';
             taskFile.controlPanel.components[taskFile.index] = document.createElement('input');
             taskFile.controlPanel.components[taskFile.index].className = "insert-data";
             taskFile.controlPanel.components[taskFile.index].id = "rename-newValue";
-            taskFile.controlPanel.components[taskFile.index].value = e.target.parentElement.parentElement.getAttribute('name').match(/[a-zA-Z0-9]+\.?[a-zA-Z0-9]{2,3}?$/)[0];
+            taskFile.controlPanel.components[taskFile.index].value = e.target.parentElement.parentElement.getAttribute('name').match(/[a-zA-Z0-9\-\_]+\.?[a-zA-Z0-9]{2,3}?$/)[0];
             e.target.parentElement.appendChild(taskFile.controlPanel.components[taskFile.index]);
             taskFile.controlPanel.components[3].setAttribute('style','float:left;');
             e.target.parentElement.insertBefore(taskFile.controlPanel.components[taskFile.index], taskFile.controlPanel.components[4]);
@@ -211,47 +213,46 @@ let taskFile = {
        });
     },
     insertData: (target,content,id) => {
+        taskFile.folderContent = content; 
         if(document.getElementById('rename-newValue')){
             document.getElementById('rename-newValue').remove();
             taskFile.controlPanel.components[3].name = 'rename';
             taskFile.controlPanel.components[3].innerHTML = 'Rename';
         }
         taskFile.username = document.cookie.match(/[a-zA-Z0-9]+$/);
-        taskFile.regEx.pattern = `${taskFile.username}[a-zA-Z\/]*$`;
+        taskFile.regEx.pattern = `${taskFile.username}[a-zA-Z\/\_\-]*$`;
         taskFile.regEx.instance = new RegExp(taskFile.regEx.pattern, 'g');
-        console.log(content);
         for(let key in content){
             taskFile.index++;
             taskFile.controlPanel.components[taskFile.index] = document.createElement('div');
-            taskFile.controlPanel.components[taskFile.index].setAttribute('style','width:20%;min-height:20vh;border:1px solid white;border-radius:5px;font-size:12px;float:left;margin-right:5px;margin-bottom:5px;');
-            taskFile.controlPanel.components[taskFile.index].innerHTML = `<div class="inside-move-overview-child-header"><p>PATH: <span style="font-size:10px;color:white;">${key.match(/Users\/{1}[a-zA-Z0-9\/\_]+$/)}</span></p></div><p>INHALT:</p>`;
+            taskFile.controlPanel.components[taskFile.index].setAttribute('style','width:20%;min-height:35vh;border:1px solid white;border-radius:5px;font-size:12px;float:left;margin-right:5px;margin-bottom:5px;');
+            taskFile.controlPanel.components[taskFile.index].innerHTML = `<div class="inside-move-overview-child-header"><p>Path: <span style="font-size:10px;color:white;">${key.match(/(?:Users\/)([a-zA-Z0-9\/\_]+)$/)[1]}</span></p></div><p>Content:</p>`;
             taskFile.controlPanel.components[taskFile.index].id = key.match(taskFile.regEx.pattern);  
             taskFile.controlPanel.components[taskFile.index].className = "move-directories";
-            console.log('CONTENT_MOVE_FOLDER');
-            console.log(content[key]);
             let bedingung = null;
-            if(content[key].length > 5){
-                console.log('Es soll Button eingebaut werden..');
-                // let bedingung = i < 5
-            }else if(content[key].length > 0 && content[key].length < 5){
-                console.log('Er soll nicht eingebaut werden..');
-                 // let bedingung = i < 5
-            }else{
-                console.log('Der Folder ist leer..');
-            }
             if(content[key].length > 0){ 
-                for(let i=0; i<content[key].length; i++){
-                    if(content[key][i].match(/^(file|dir)/)[0] == 'file'){
+                for(let i=0; i<content[key].length; i++){  
+                    console.log(content[key][i]);
+                    if(i > 5){
+                       // taskFile.controlPanel.components[taskFile.index].innerHTML += `<button class='folder-slider' id='${key.match(/(?:^.*\/{1}Users\/{1})(.*)$/)[1]}'>More</button>`;
+                        break;
+                    }  
+                    if(content[key][i].match(/^(file|dir)/)[0] == 'file' && content[key][i] != "file-history.yml"){
                         taskFile.controlPanel.components[taskFile.index].innerHTML += `<p class="move-elements" name="file" id="${key.match(taskFile.regEx.pattern)[0]}/${content[key][i].match(/[a-zA-Z0-9]+\.*[a-zA-Z0-9]*$/)[0]}" draggable="true"><span class="material-symbols-outlined">article</span>Name: ${content[key][i].match(/[a-zA-Z0-9\_]+\.?[a-zA-Z0-9]{0,3}$/)[0]}</p>`;
                     }else if(content[key][i].match(/^(file|dir)/)[0] == 'dir'){
                         taskFile.controlPanel.components[taskFile.index].innerHTML += `<p class="move-elements" name="directory" id="${key.match(taskFile.regEx.pattern)}/${content[key][i].match(/[a-zA-Z0-9]+\.*[a-zA-Z]*$/)[0]}" draggable="true"><span class="material-symbols-outlined">folder</span>Name: ${content[key][i].match(/[a-zA-Z0-9]+\.*[a-zA-Z]*$/)[0]}</p>`;
                     }  
-                }
+              }
             }else{
                 taskFile.controlPanel.components[taskFile.index].innerHTML += `<p class="empty-folder"><span class="material-symbols-outlined">folder</span>Empty Folder</p>`;
             }
             taskFile.controlPanel.components[taskFile.index].innerHTML += `</div>`;
             target.appendChild(taskFile.controlPanel.components[taskFile.index]);
+        }
+      //  taskFile.windows[id] = {index:4, l:taskFile.folderContent[`${Object.keys(taskFile.folderContent)[0].match(/^.*Users\//)[0]}${id}`].length} 
+        let scrollButtons = document.querySelectorAll('.folder-slider');
+        for(let i=0; i<scrollButtons.length; i++){ 
+            scrollButtons[i].addEventListener('click', (e) => {console.log(content[e.target.getAttribute('id')]); taskFile.windowScroll(e.target.getAttribute('id'));});
         }
         taskFile.controlPanel.components[++taskFile.index] = document.createElement('button');
         taskFile.controlPanel.components[taskFile.index].innerHTML = 'Cancel';
@@ -274,6 +275,34 @@ let taskFile = {
             assignEventToDirectories[i].addEventListener('dragover', taskFile.allowDrop);
         }
         document.getElementById(id).parentElement.style.backgroundColor = "red";
+    },
+    windows: {},
+    windowScroll: (id) => { // Nachfrage zum Object, 
+        console.log("WINDOWSCROLL.."); 
+        console.log(Object.keys(taskFile.folderContent)[0].match(/^.*Users\//)[0]);
+        console.log(id);
+        console.log(taskFile.windows[id]);
+        console.log(`${Object.keys(taskFile.folderContent)[0].match(/^.*Users\//)[0]}${id}`);
+        console.log(taskFile.folderContent[`${Object.keys(taskFile.folderContent)[0].match(/^.*Users\//)[0]}${id}`]);
+        let endLoop = null;
+        switch(true){
+            case taskFile.windows[id].index == 4: 
+                console.log("SWITCH-EQUAL::");
+                endLoop = taskFile.windows[id].index + 4;
+            break;
+            case taskFile.windows[id].index < taskFile.windows[id].l &&  taskFile.windows[id].index + 4 <=  taskFile.windows[id].l:
+                console.log("SWITCH-LESS::");
+                taskFile.windows[id].index += 4;
+                endLoop = taskFile.windows[id].index + 4;
+            break;
+            default: 
+                console.log("SWITCH-DEFAULT::");
+                taskFile.windows[id].index = taskFile.windows[id].index - taskFile.windows[id].l;
+                endLoop = taskFile.windows[id].l;
+        }
+        for(let i=taskFile.windows[id].index; i<endLoop; i++){
+            console.log(taskFile.folderContent[`${Object.keys(taskFile.folderContent)[0].match(/^.*Users\//)[0]}${id}`][i]);
+        }
     },
     drag: (e) => {
         let was = e.target.getAttribute('name');
@@ -502,6 +531,8 @@ class Finder {
                             this.go(`folder-content=${e.target.parentElement.id}`, (x) => {
                                 this.#requestFolderContent.target = document.getElementById(e.target.parentElement.id);
                                 this.#requestFolderContent.target.children[0].innerHTML = 'close';
+                                this.#requestFolderContent.target.children[0].style.backgroundColor = '#252525';
+                                this.#requestFolderContent.target.children[0].style.margin = 0;
                                 this.#requestFolderContent.target.children[1].innerHTML = 'Hide Content';
                                 this.#requestFolderContent.target.children[1].setAttribute('style', 'height:2vh;margin:0;padding:1%;');
                                 this.#requestFolderContent.data = x;
@@ -511,6 +542,7 @@ class Finder {
                         }else{
                             this.#requestFolderContent.target = document.getElementById(e.target.parentElement.id);
                             this.#requestFolderContent.event(e.target.parentElement.id);
+                            this.#requestFolderContent.target.children[0].style.backgroundColor = 'black';
                             this.#requestFolderContent.target.children[1].setAttribute('style', 'display:flex;align-items:center;font-size:11px;background-color:#252525;');
                         }
                     });
@@ -528,7 +560,12 @@ class Finder {
                 this.#requestFolderContent.elements = {};
             }); 
             this.#overview['parent'].setAttribute('style','width:81%;min-height:25vh;padding:2%;background-color:#262626;color:white;border-radius:0 17px 17px 0;');
-            document.body.insertBefore(this.#overview['parent'], document.getElementById('working-directory')); 
+            if(document.getElementById('working-directory')){
+                document.body.insertBefore(this.#overview['parent'], document.getElementById('working-directory')); 
+            }else if(document.getElementById('present-file-parent')){
+                document.body.insertBefore(this.#overview['parent'], document.getElementById('present-file-parent'));
+            }
+            
             this.#overview['counter'] = 0;
             if(this.#overview['typeOfFileChild'].length > 0){
                 for(let i=0; i<this.#overview['typeOfFileChild'].length; i++){
@@ -538,7 +575,7 @@ class Finder {
             }
             for(let i=0; i<this.#selectType.type.length; i++){ 
                 this.#overview['typeOfFileChild'][i] = document.createElement('div');
-                this.#overview['typeOfFileChild'][i].setAttribute('style', 'width:50px;height:50px;border:1px solid white;border-radius:5px;margin-left:5px;display:flex;flex-direction:column;align-items:center;float:left;');
+                this.#overview['typeOfFileChild'][i].setAttribute('style', 'width:50px;height:50px;border:1px solid white;border-radius:5px;margin-left:5px;margin-bottom:5px;display:flex;flex-direction:column;align-items:center;float:left;');
                 if(this.#selectType.type[i] == 'F'){
                     this.#overview['typeOfFileChild'][i].innerHTML = `<span id='file' class="material-symbols-outlined finderFilterButtonsIcons">text_snippet</span>${this.#selectType.type[i]}`;
                     this.#overview['typeOfFileChild'][i].id = `file`;
@@ -555,8 +592,8 @@ class Finder {
                         if(this.#selectType.chosen == 'file' && this.#overview['children'][i].id.match(/(file|directory)/)[0] == 'file'){
                             this.#selectType.formats.includes(this.#overview['children'][i].id.match(/[a-zA-Z0-9]+$/)[0]) == false ? this.#selectType.formats.push(this.#overview['children'][i].id.match(/[a-zA-Z0-9]+$/)[0]) : false
                         }
-                    }
-                    if(this.#selectType.chosen == 'file' && this.#selectType.formats.length > 0 && this.#selectType.elementsOfFormatsParent == null){
+                    } // this.#selectType.chosen == 'file' && this.#selectType.formats.length > 0 && this.#selectType.elementsOfFormatsParent == null
+                    if(this.#selectType.chosen == 'file'  && this.#selectType.elementsOfFormatsParent == null){
                         this.#selectType.elementsOfFormatsParent = document.createElement('div');
                         this.#selectType.elementsOfFormatsParent.id = 'finder-typOfFormat-Parent';
                         for(let i=0; i<this.#selectType.formats.length; i++){
@@ -585,7 +622,8 @@ class Finder {
                     }
                     this.#selectType.selectedButton.style.border = '1px solid red';
                 }else if(this.#selectType.chosen == e.target.id.match(/(file|directory)/)[0]){
-                    this.#selectType.chosen == 'file' && this.#selectType.elementsOfFormatsParent != null ? this.#selectType.elementsOfFormatsParent.remove() : console.log('NO_PARENT')
+                  //  this.#selectType.elementsOfFormatsParent != null ? document.querySelector('finder-typOfFormat-Parent').remove() : false;
+                    this.#selectType.chosen == 'file' && this.#selectType.elementsOfFormatsParent != null ? document.querySelector('#finder-typOfFormat-Parent').remove() : console.log('NO_PARENT')
                     for(let i=1; i<this.#overview['children'].length; i++){
                         this.#overview['children'][i].id.match(/(file|directory)/)[0] != this.#selectType.chosen ? this.#overview['children'][i].style.display = 'block' : false
                     }
@@ -593,6 +631,7 @@ class Finder {
                     this.#selectType.elementsOfFormatsParent = null;
                     this.#selectType.selectedButton.style.border = '1px solid white';
                     this.#selectType.fileFormatChosed = null;
+                    this.#selectType.formats = [];
                 }         
                 });
                 this.#overview['typeOfFile'].appendChild(this.#overview['typeOfFileChild'][i]);
@@ -666,24 +705,36 @@ let history = {
     }
 }
 
-let initProject = {
+let initProject = { 
     trigger: document.getElementById('new-project-header'),
+    projectActionTriggers:null,
+    projectData: {
+        members: [],
+        schedule: null,
+        name: null
+    },
     parent: null, 
     status: true,
     users: null, 
     main: null,
     users: null,
     build: () => {
+        console.log(initProject.trigger);
         initProject.parent = document.getElementById('new-project-parent');
         initProject.main = document.getElementById('new-project-main');
         if(initProject.status == true){
-            initProject.parent.setAttribute('style', 'position:absolute;z-index:300;right:290px;width:850px;height:50vh;padding:1%;background-color:white;box-shadow: -10px 5px 2px 1px rgb(60, 60, 60, 0.1);');
-            initProject.trigger.setAttribute('style','background-color:lightgrey;padding:1%;border-radius:50%;width:15px;height:15px;float:right;');
+            initProject.parent.setAttribute('style', 'position:absolute;z-index:300;right:290px;width:1175px;height:60vh;padding:1%;background-color:white;box-shadow: -10px 5px 2px 1px rgb(60, 60, 60, 0.1);border-radius:20px 0 20px 20px');
+            initProject.trigger.setAttribute('style','background-color:lightgrey;padding:1%;border-radius:50%;width:9px;height:9px;float:right;');
             initProject.trigger.children[1].style.display = 'none';
             initProject.trigger.children[0].innerHTML = 'close';
-            initProject.main.innerHTML = `<div id='new-project-parent-header'><span class="material-symbols-outlined">construction</span><p>Build Project</p></div><label>Project Name</label><div id='project-input-parent'><input type='text'></div><div id='project-select-user-parent'><p id='project-select-user-trigger' value='get-users'>Select User</p></div>`;
+            initProject.main.innerHTML = `<div id='new-project-parent-header'><span class="material-symbols-outlined">construction</span><p>Build Project</p></div><div><label for='projectName'>Project Name</label></div><div id='project-input-parent'><input id='projectName' type='text'></div><div id='project-select-user-parent'><p id='project-select-user-trigger' value='get-users'>Select User</p></div>`;
             document.getElementById('project-select-user-trigger').addEventListener('click', () => {initProject.getUsers('get-users', (x) => {
-                initProject.buildUsers(x);
+                initProject.projectData.name = document.getElementById('projectName').value; 
+                if(initProject.projectData.name == ''){
+                    document.getElementById('projectName').placeholder = "Project Name is required";
+                }else{
+                    document.getElementById('new-project-users-overview') == undefined ? initProject.buildUsers(x) : false;
+                }   
             })}, false);
             initProject.status = false;
         }else if(initProject.status == false){
@@ -691,19 +742,17 @@ let initProject = {
             initProject.trigger.setAttribute('style','background-color:white;padding:0;border-radius:0');
             initProject.trigger.children[1].style.display = 'block';
             initProject.main.innerHTML = '';
-            initProject.users.remove();
+            initProject.users != null ? initProject.users.remove() : false;
             document.getElementById('new-project-header-icon').innerHTML = 'new_window';
             initProject.status = true;            
         }
      },
      getUsers: (par, func) => {
-        console.log('getUsers..');
         fetch(`/project-data/${par}`)
         .then(response => {
             return response.json();
         })
         .then(response => {
-            //console.log(response);
             let task = func(response);
         })
         .catch(err => {
@@ -715,33 +764,63 @@ let initProject = {
         initProject.users = document.createElement('div');
         initProject.users.id = 'new-project-users-overview';
         for(let i=0; i<x.length; i++){
-            initProject.users.innerHTML += `<div class='new-project-user'><p>Username: ${x[i][0]}</p><p>First Name: ${x[i][1]}</p><p>Last Name: ${x[i][2]}</p><p>Contact: ${x[i][3]}</p></div>`;
+            initProject.users.innerHTML += `<div class='new-project-user'><img src='data:image/jpg;base64,${x[i][5]}' width="100" height="131"/><div class="new-project-user-info"><p class="new-project-user-child-p">Username: ${x[i][1]}</p><p class="new-project-user-child-p">First Name: ${x[i][2]}</p><p class="new-project-user-child-p">Last Name: ${x[i][3]}</p><p class="new-project-user-child-p">Contact: ${x[i][4]}</p></div><div class='project-action-container' value="${x[i][0]}"><span class="material-symbols-outlined">person_add</span></div></div>`;
         }
-        initProject.parent.style.width = '850px';
         initProject.main.style.width = '100%';
         document.getElementById('project-select-user-parent').appendChild(initProject.users);
+        initProject.assignEvent();
+    },
+    assignEvent: () => { 
+        initProject.projectActionTriggers = document.querySelectorAll('.project-action-container');
+        for(let i=0; i<initProject.projectActionTriggers.length; i++){
+            initProject.projectActionTriggers[i].addEventListener('click', (e)=>{initProject.projectData.members.push(e.target.parentElement.getAttribute('value')); console.log(initProject.projectData.members);});
+        }
     }
 }
 
-
-/*
-class BuildProject {
-    constructor(nameOfProject, file, user){
-        this.name = nameOfProject;
-        this.file = file; 
-        this.user = user;
+class BuildProject{
+    constructor(name, members, schedule){ 
+        this.name = name; 
+        this.members = members; 
+        this.schedule = schedule 
     }
-    
+    connect(){
+
+    }
 }
-    event -> init -> 
-  constructor(id, type, response){ 
-        this.targetElement = document.querySelector(id);
-        this.type = type;
-        this.content = response;
-    }
 
-*/
+let downloadFile = {
+    trigger: null,
+    id: null,
+    go: () => {
+        if(document.querySelector('#present-file-parent-download')){
+            downloadFile.trigger = document.querySelector('#present-file-parent-download');
+            downloadFile.trigger.addEventListener('click', (e) => {
+                downloadFile.id = e.target.getAttribute('value');
+                downloadFile.connect();
+                });
+        }else{
+            return false;
+        }
+    },
+    connect: () => {
+        fetch(downloadFile.id)
+        .then(response => {
+            return response.json();
+        })
+        .then(response => {
+           // let task = func(response);
+           console.log("download..");
+           console.log(response);
+        })
+        .catch(err => {
+            console.log(err);
+        })
+    }
+}
+
 document.getElementById('new-project-header').addEventListener('click', initProject.build);
+downloadFile.go();
 document.body.addEventListener('onload', taskFile.init());
 history.init();
 
